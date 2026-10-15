@@ -110,6 +110,8 @@ class MemoryStore:
 
     # ---- writes ------------------------------------------------------
     def existing_hashes(self) -> dict[str, str]:
+        if self.embedder_name and self.embedder_name != get_embedder().name:
+            return {}  # vectors came from another model: re-embed everything
         return {c.id: c.content_hash for c in self.chunks}
 
     def upsert(self, chunks: list[Chunk], vectors: np.ndarray, embedder_name: str) -> None:
@@ -217,7 +219,9 @@ class PgVectorStore:
 
     def existing_hashes(self) -> dict[str, str]:
         with self._conn() as conn:
-            return dict(conn.execute("SELECT id, content_hash FROM chunks").fetchall())
+            # only chunks embedded by the current model count as up to date
+            return dict(conn.execute("SELECT id, content_hash FROM chunks WHERE embedder = %s",
+                                     (get_embedder().name,)).fetchall())
 
     def upsert(self, chunks: list[Chunk], vectors: np.ndarray, embedder_name: str) -> None:
         with self._conn() as conn:

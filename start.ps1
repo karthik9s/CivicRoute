@@ -13,7 +13,7 @@ function Fail($msg) { Write-Host "ERROR: $msg" -ForegroundColor Red; exit 1 }
 if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
     Fail "Python is not installed or not on PATH. Install Python 3.11+ from python.org (tick 'Add to PATH')."
 }
-python -c "import fastapi, uvicorn, sentence_transformers, psycopg, openai" 2>$null
+python -c "import fastapi, uvicorn, onnxruntime, sentencepiece, psycopg, openai" 2>$null
 if ($LASTEXITCODE -ne 0) {
     Step "Installing Python packages (one-time)..." Yellow
     python -m pip install -r (Join-Path $backend "requirements.txt")
@@ -24,9 +24,9 @@ if (-not (Test-Path (Join-Path $root "frontend\dist\index.html"))) {
 }
 
 # Use the cached embedding model without network checks; on a fresh machine let it download once.
-$model = Join-Path $env:USERPROFILE ".cache\huggingface\hub\models--intfloat--multilingual-e5-small"
+$model = Join-Path $env:USERPROFILE ".cache\huggingface\hub\models--Xenova--multilingual-e5-small"
 if (Test-Path $model) { $env:HF_HUB_OFFLINE = "1" }
-else { Step "First run: downloading the multilingual AI model (~470 MB, one time)..." Yellow }
+else { Step "First run: downloading the multilingual AI model (~120 MB, one time)..." Yellow }
 
 # ---------------------------------------------------------------- 2. Database (optional)
 function Test-Docker { docker info *> $null; return ($LASTEXITCODE -eq 0) }
@@ -96,7 +96,7 @@ if (-not $NoBrowser) {
               "-Uri 'http://127.0.0.1:$Port/api/health' | Out-Null; Start-Process '$url'; exit } catch { Start-Sleep -Seconds 2 } }"
     Start-Process powershell -WindowStyle Hidden -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", $opener)
 }
-Step "Starting CivicRoute on $url (first start loads the AI model, about 1 minute; the browser opens automatically)." Green
+Step "Starting CivicRoute on $url (first start loads the AI model, a few seconds; the browser opens automatically)." Green
 Write-Host "    Press Ctrl+C in this window to stop the app." -ForegroundColor DarkGray
 Set-Location $backend
 # --app-dir puts the project path in the command line, so stop.bat / restarts only ever touch this app.

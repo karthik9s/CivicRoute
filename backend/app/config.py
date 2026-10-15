@@ -33,6 +33,11 @@ class Settings:
 
     # Embeddings: a sentence-transformers model name, or "hash" for a dependency-free test embedder.
     embedding_model: str = os.getenv("EMBEDDING_MODEL", "intfloat/multilingual-e5-small")
+    embedding_backend: str = os.getenv("EMBEDDING_BACKEND", "onnx")  # onnx (light, default) | torch
+    # int8 ONNX export of the same model (Xenova = Hugging Face's transformers.js team)
+    embedding_onnx_repo: str = os.getenv("EMBEDDING_ONNX_REPO", "Xenova/multilingual-e5-small")
+    embedding_onnx_file: str = os.getenv("EMBEDDING_ONNX_FILE", "onnx/model_quantized.onnx")
+    embedding_threads: int = int(os.getenv("EMBEDDING_THREADS", "2"))
     reranker_model: str = os.getenv("RERANKER_MODEL", "")  # e.g. BAAI/bge-reranker-base; empty = off
 
     # LLM: "auto" picks the first provider with a key (groq, anthropic, xai, gemini, openai); "none" = extractive only.
@@ -47,6 +52,9 @@ class Settings:
     # Public deployment: hide internals in /api/health and cap LLM calls per day across ALL users so a public
     # site can't exhaust a free API quota (over budget -> answers fall back to quoting the official sources).
     public_mode: bool = os.getenv("PUBLIC_MODE", "0") == "1"
+    # Re-sync the index with the downloaded pages at startup. The Docker image builds the index at build
+    # time, so it sets 0: startup on a tiny CPU drops from minutes to seconds.
+    sync_on_start: bool = os.getenv("SYNC_ON_START", "1") == "1"
     llm_daily_budget: int = int(os.getenv("LLM_DAILY_BUDGET", "0"))  # 0 = unlimited
     min_score: float = float(os.getenv("MIN_RETRIEVAL_SCORE", "0.0"))
     cors_origins: list[str] = field(

@@ -1,14 +1,3 @@
----
-title: CivicRoute
-emoji: 🧭
-colorFrom: blue
-colorTo: indigo
-sdk: docker
-app_port: 8000
-pinned: false
-short_description: AI help desk for Indian PAN services (EN/HI/TE)
----
-
 # CivicRoute — PAN Help Desk
 
 An AI-assisted help desk that guides Indian citizens through **PAN services** (new PAN, correction, duplicate/reprint, e-PAN, Aadhaar linking, tracking, verification, duplicate-PAN surrender). Citizens describe a problem in their own words (English, हिंदी, తెలుగు), get the correct service with steps, documents and fees **from official sources**, have their details checked before applying, and finish on the **official portal**.
@@ -77,7 +66,11 @@ Double-click **`start.bat`** (or run it from any terminal). Stop with Ctrl+C, or
 docker compose --profile app up -d --build
 ```
 
-This builds the UI and server into one image (CPU-only PyTorch, embedding model baked in, non-root user, health check) and runs it next to pgvector. It's available at http://localhost:8000. Secrets come from `backend/.env` at runtime; they are never baked into the image.
+This builds the UI and server into one image (no PyTorch: int8 ONNX embedding model baked in, ~120 MB RAM, non-root user, health check) and runs it next to pgvector. It's available at http://localhost:8000. Secrets come from `backend/.env` at runtime; they are never baked into the image.
+
+### Put it online (free)
+
+The repository includes a Render Blueprint (`render.yaml`): one free web service, no database, no card. Setup takes about 5 minutes; see [DEPLOY.md](DEPLOY.md).
 
 ## Keeping data fresh
 
@@ -123,7 +116,7 @@ backend/   app/ (API, RAG, intent, validators, security, i18n)  ingest/ (crawler
            data/ (service cards, flows, KB, translations, helplines, updates)  eval/  tests/
 frontend/  src/pages (Home, ServicePage, Apply, Tracker, Info)  src/chat (support agent)  src/lib (api, i18n, validation)
 scripts/   refresh.ps1 (weekly data refresh), test_opener.ps1
-start.bat / start.ps1 / stop.bat · Dockerfile · docker-compose.yml · SECURITY.md
+start.bat / start.ps1 / stop.bat · Dockerfile · docker-compose.yml · render.yaml · DEPLOY.md · SECURITY.md
 ```
 
 ## Maintenance

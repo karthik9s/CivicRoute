@@ -155,3 +155,18 @@ def test_localized_services_keep_facts():
         assert any("50" in f["amount"] for f in detail["fees"])
         assert all(l["url"].startswith("https://") for l in detail["official_links"])
     assert client.get("/api/services?lang=xx").json()[0]["title"] == list(en.values())[0]["title"]  # unknown -> English
+
+
+def test_model_change_reembeds_unchanged_chunks(tmp_path):
+    """Switching embedding models must re-embed everything, even chunks whose text didn't change."""
+    from app.embeddings import get_embedder
+    from app.store import Chunk, MemoryStore
+
+    store = MemoryStore(tmp_path)
+    chunk = Chunk(id="c1", source_url="https://www.incometax.gov.in/", title="t", content="PAN reprint fee", portal="x",
+                  service_ids=[], section="s", content_hash="h1", last_verified="2026-01-01", origin="kb")
+    current = get_embedder()
+    store.upsert([chunk], current.embed_documents(["PAN reprint fee"]), "some-old-model")
+    assert store.existing_hashes() == {}  # stale model: nothing counts as up to date
+    store.upsert([chunk], current.embed_documents(["PAN reprint fee"]), current.name)
+    assert store.existing_hashes() == {"c1": "h1"}

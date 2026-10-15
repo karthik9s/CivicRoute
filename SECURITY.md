@@ -89,7 +89,7 @@ These are acceptable for a local or demo deployment and **must** be addressed be
 | No HTTPS / HSTS | Runs on localhost | Terminate TLS at a reverse proxy (Caddy/Nginx), add `Strict-Transport-Security` |
 | ~~Unpinned Python versions~~ **Done:** `backend/requirements.lock` pins exact versions; CI audits weekly | — | Enable Dependabot for automatic upgrade PRs |
 | Chat text is sent to a third-party LLM (Groq/Anthropic/xAI) | Identifiers are redacted first | Publish a privacy notice; prefer providers with zero-retention options |
-| `/api/health` reveals provider/model names | Useful for local debugging | Hide behind an admin check |
+| `/api/health` reveals provider/model names locally | Useful for local debugging; `PUBLIC_MODE=1` (default in the Docker image) hides them | — |
 | Default DB password `civicroute` | DB is localhost-only | Set `POSTGRES_PASSWORD`; use a managed DB with network rules |
 | `start.ps1` auto-installs packages from PyPI (`requirements.txt`) | Convenience on first run | Use `requirements.lock` / the Docker image in production |
 | Docker image tag `pgvector/pgvector:pg16` isn't pinned to a digest | Official image | Pin by digest |

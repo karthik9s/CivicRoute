@@ -1,7 +1,9 @@
 """Embedding backends.
 
-Default is a small multilingual sentence-transformers model (works for English, Hindi and
-other Indian languages). `hash` is a deterministic bag-of-words embedder used in tests and
+Default is the small multilingual E5 model (English, Hindi, Telugu and other Indian languages)
+run with ONNX Runtime as an int8-quantized export: ~120 MB of RAM instead of ~500 MB for PyTorch,
+so the app fits free 512 MB hosts. `sentence-transformers` is still used if installed and
+EMBEDDING_BACKEND=torch. `hash` is a deterministic bag-of-words embedder used in tests and
 as a last-resort fallback when the model can't be downloaded.
 """
 from __future__ import annotations
@@ -57,7 +59,65 @@ class HashEmbedder:
         return self._vec(text)
 
 
+class OnnxEmbedder:
+    """multilingual-e5-small via ONNX Runtime: tokenize -> transformer -> mean-pool -> L2-normalize
+    (the same pipeline sentence-transformers runs for this model).
+
+    Tokenizes with the model's original SentencePiece file (~5 MB in RAM) instead of tokenizer.json,
+    which the `tokenizers` library inflates to ~280 MB. Token ids are identical (XLM-R layout:
+    <s>=0, <pad>=1, </s>=2, <unk>=3, SentencePiece ids shifted by 1) - verified on every indexed chunk."""
+
+    MAX_TOKENS = 512
+
+    def __init__(self, model_name: str, repo: str, filename: str):
+        import onnxruntime as ort
+        import sentencepiece as spm
+        from huggingface_hub import hf_hub_download
+
+        self.name = f"{model_name}:onnx-q8"
+        self.sp = spm.SentencePieceProcessor(model_file=hf_hub_download(model_name, "sentencepiece.bpe.model"))
+        opts = ort.SessionOptions()
+        opts.intra_op_num_threads = settings.embedding_threads
+        opts.enable_cpu_mem_arena = False  # return memory after big batches (tight hosts)
+        self.session = ort.InferenceSession(hf_hub_download(repo, filename), opts, providers=["CPUExecutionProvider"])
+        self._inputs = {i.name for i in self.session.get_inputs()}
+        self._e5 = "e5" in model_name.lower()
+        self.dim = int(self._encode(["dim"]).shape[1])
+
+    def _ids(self, text: str) -> list[int]:
+        pieces = [i + 1 if i else 3 for i in self.sp.encode(text.strip())]
+        return [0] + pieces[: self.MAX_TOKENS - 2] + [2]
+
+    def _encode(self, texts: list[str]) -> np.ndarray:
+        out = []
+        for i in range(0, len(texts), 16):  # small batches keep peak memory low
+            seqs = [self._ids(t) for t in texts[i:i + 16]]
+            width = max(len(s) for s in seqs)
+            ids = np.ones((len(seqs), width), dtype=np.int64)  # 1 = <pad>
+            mask = np.zeros((len(seqs), width), dtype=np.int64)
+            for r, s in enumerate(seqs):
+                ids[r, :len(s)] = s
+                mask[r, :len(s)] = 1
+            feed = {"input_ids": ids, "attention_mask": mask}
+            if "token_type_ids" in self._inputs:
+                feed["token_type_ids"] = np.zeros_like(ids)
+            hidden = self.session.run(None, feed)[0]
+            pooled = (hidden * mask[..., None]).sum(1) / np.maximum(mask.sum(1, keepdims=True), 1)
+            out.append(pooled / np.linalg.norm(pooled, axis=1, keepdims=True))
+        return np.vstack(out).astype(np.float32)
+
+    def embed_documents(self, texts: list[str]) -> np.ndarray:
+        if not texts:
+            return np.zeros((0, self.dim), np.float32)
+        return self._encode(["passage: " + t if self._e5 else t for t in texts])
+
+    def embed_query(self, text: str) -> np.ndarray:
+        return self._encode(["query: " + text if self._e5 else text])[0]
+
+
 class SentenceTransformerEmbedder:
+    """Optional PyTorch backend (EMBEDDING_BACKEND=torch, needs `pip install sentence-transformers`)."""
+
     def __init__(self, model_name: str):
         from sentence_transformers import SentenceTransformer
 
@@ -84,7 +144,9 @@ def get_embedder():
     if settings.embedding_model == "hash":
         return HashEmbedder()
     try:
-        return SentenceTransformerEmbedder(settings.embedding_model)
-    except Exception as exc:  # model download failure, missing torch, etc.
+        if settings.embedding_backend == "torch":
+            return SentenceTransformerEmbedder(settings.embedding_model)
+        return OnnxEmbedder(settings.embedding_model, settings.embedding_onnx_repo, settings.embedding_onnx_file)
+    except Exception as exc:  # model download failure, missing runtime, etc.
         log.warning("Falling back to hash embedder (%s): %s", settings.embedding_model, exc)
         return HashEmbedder()

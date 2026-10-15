@@ -1,0 +1,12 @@
+# Render Blueprint - one free web service built from the Dockerfile (see DEPLOY.md).
+services:
+  - type: web
+    name: civicroute
+    runtime: docker
+    plan: free                      # 512 MB RAM; sleeps after 15 min idle
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeployTrigger: checksPass   # redeploy on push to main only after GitHub CI passes
+    envVars:
+      - key: GROQ_API_KEY           # you type the value in the Render dashboard; it never goes in git
+        sync: false

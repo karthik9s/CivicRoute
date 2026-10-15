@@ -21,7 +21,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.13", cache: pip, cache-dependency-path: backend/requirements.lock }
-      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
       - run: pip install -r requirements.lock pip-audit
       - run: python -m pytest -W error::DeprecationWarning
       - run: python -m pip_audit -r requirements.lock
@@ -38,21 +37,3 @@ jobs:
       - run: npm run build
       - run: npm audit --audit-level=high
 
-  # Deploy to the Hugging Face Space after both test jobs pass on main.
-  # Set up once (DEPLOY.md): repo secret HF_TOKEN (write token) + repo variable HF_SPACE (e.g. karthik9s/civicroute).
-  deploy:
-    needs: [backend, frontend]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-    env:
-      HF_TOKEN: ${{ secrets.HF_TOKEN }}
-      HF_SPACE: ${{ vars.HF_SPACE }}
-    steps:
-      - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
-      - name: Push to Hugging Face Space
-        if: env.HF_TOKEN != '' && env.HF_SPACE != ''
-        run: git push --force "https://hf:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}" HEAD:main
-      - name: Skipped (not configured)
-        if: env.HF_TOKEN == '' || env.HF_SPACE == ''
-        run: echo "Set the HF_TOKEN secret and HF_SPACE variable to enable automatic deployment (see DEPLOY.md)."

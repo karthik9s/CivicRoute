@@ -290,9 +290,14 @@ def _warmup() -> None:
         # Incremental: only new/changed chunks are embedded, so this is fast unless the store is empty.
         from ingest.run import run_pipeline
 
-        if get_store().count() == 0:
+        store = get_store()
+        if store.count() == 0:
             logging.getLogger(__name__).warning("Vector store is empty - building the index now (one-time, ~1 min)")
-        run_pipeline(offline=True, write_report=False)
+        if settings.sync_on_start or store.count() == 0:
+            run_pipeline(offline=True, write_report=False)
+        else:
+            get_embedder()
         detect_intent("warm up")
+        get_llm()  # import the provider SDK now so the first chat isn't slow
     except Exception as exc:  # never block startup
         logging.getLogger(__name__).warning("Warm-up failed: %s", exc)
