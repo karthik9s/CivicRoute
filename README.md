@@ -1,3 +1,14 @@
+---
+title: CivicRoute
+emoji: 🧭
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 8000
+pinned: false
+short_description: AI help desk for Indian PAN services (EN/HI/TE)
+---
+
 # CivicRoute — PAN Help Desk
 
 An AI-assisted help desk that guides Indian citizens through **PAN services** (new PAN, correction, duplicate/reprint, e-PAN, Aadhaar linking, tracking, verification, duplicate-PAN surrender). Citizens describe a problem in their own words (English, हिंदी, తెలుగు), get the correct service with steps, documents and fees **from official sources**, have their details checked before applying, and finish on the **official portal**.

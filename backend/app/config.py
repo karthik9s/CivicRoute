@@ -44,6 +44,10 @@ class Settings:
     xai_model: str = os.getenv("XAI_MODEL", "grok-4.3")
 
     top_k: int = int(os.getenv("TOP_K", "6"))
+    # Public deployment: hide internals in /api/health and cap LLM calls per day across ALL users so a public
+    # site can't exhaust a free API quota (over budget -> answers fall back to quoting the official sources).
+    public_mode: bool = os.getenv("PUBLIC_MODE", "0") == "1"
+    llm_daily_budget: int = int(os.getenv("LLM_DAILY_BUDGET", "0"))  # 0 = unlimited
     min_score: float = float(os.getenv("MIN_RETRIEVAL_SCORE", "0.0"))
     cors_origins: list[str] = field(
         default_factory=lambda: os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",")

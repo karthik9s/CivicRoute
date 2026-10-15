@@ -93,3 +93,21 @@ def test_crawler_domain_allow_list():
     assert not allowed("https://proteantech.in.evil.com/")
     assert not allowed("https://evilproteantech.in/")
     assert not allowed("http://169.254.169.254/latest/meta-data/")  # SSRF to cloud metadata
+
+
+def test_daily_llm_budget(monkeypatch):
+    from app import rag
+    from app.config import settings
+
+    monkeypatch.setattr(type(settings), "llm_daily_budget", property(lambda self: 2), raising=False)
+    rag._budget.update(day=None, used=0)
+    assert [rag._llm_budget_ok() for _ in range(3)] == [True, True, False]  # 3rd call falls back to extractive
+    rag._budget.update(day=None, used=0)
+
+
+def test_public_mode_hides_internals(monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(type(settings), "public_mode", property(lambda self: True), raising=False)
+    h = client.get("/api/health").json()
+    assert h["status"] == "ok" and "llm" not in h and "embedder" not in h and "store" not in h

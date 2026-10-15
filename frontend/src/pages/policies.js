@@ -24,19 +24,19 @@ export const POLICIES = {
     en: ['Privacy policy', [
       ['What we store', 'Nothing you type into the application helper is stored on our servers. Saved acknowledgement numbers and your language/text-size preferences are kept only in your own browser.'],
       ['Aadhaar', 'Aadhaar numbers are checked only on your device and are never sent to our servers. The server rejects any request that contains an Aadhaar-like number.'],
-      ['Support chat questions', 'Questions you ask the support assistant are sent to an AI service to write the answer. Before that, Aadhaar, PAN, mobile numbers, OTPs and email addresses are automatically removed.'],
+      ['Support chat questions', 'Questions you ask the support assistant are sent to an AI service (currently Groq, Inc., which may process data outside India) to write the answer. Before that, Aadhaar, PAN, mobile numbers, OTPs and email addresses are automatically removed. Please do not type other personal details in the chat.'],
       ['Cookies & tracking', 'We do not use advertising or tracking cookies.'],
     ]],
     hi: ['गोपनीयता नीति', [
       ['हम क्या सहेजते हैं', 'आवेदन सहायक में आप जो भी लिखते हैं वह हमारे सर्वर पर सहेजा नहीं जाता। सहेजे गए पावती नंबर और आपकी भाषा/टेक्स्ट-आकार की पसंद केवल आपके अपने ब्राउज़र में रहती है।'],
       ['आधार', 'आधार नंबर केवल आपके डिवाइस पर जाँचे जाते हैं और कभी हमारे सर्वर पर नहीं भेजे जाते। आधार जैसे नंबर वाला कोई भी अनुरोध सर्वर अस्वीकार कर देता है।'],
-      ['सहायता चैट के सवाल', 'सहायता सहायक से पूछे गए सवाल जवाब लिखने के लिए एक AI सेवा को भेजे जाते हैं। उससे पहले आधार, PAN, मोबाइल नंबर, OTP और ईमेल पते अपने-आप हटा दिए जाते हैं।'],
+      ['सहायता चैट के सवाल', 'सहायता सहायक से पूछे गए सवाल जवाब लिखने के लिए एक AI सेवा (फ़िलहाल Groq, Inc., जो डेटा भारत के बाहर प्रोसेस कर सकती है) को भेजे जाते हैं। उससे पहले आधार, PAN, मोबाइल नंबर, OTP और ईमेल पते अपने-आप हटा दिए जाते हैं। कृपया चैट में अन्य निजी जानकारी न लिखें।'],
       ['कुकीज़ और ट्रैकिंग', 'हम विज्ञापन या ट्रैकिंग कुकीज़ का उपयोग नहीं करते।'],
     ]],
     te: ['గోప్యతా విధానం', [
       ['మేము ఏమి సేవ్ చేస్తాము', 'దరఖాస్తు సహాయకంలో మీరు టైప్ చేసేది ఏదీ మా సర్వర్లలో సేవ్ కాదు. సేవ్ చేసిన అక్నాలెడ్జ్‌మెంట్ నంబర్లు, మీ భాష/అక్షర పరిమాణం ఎంపికలు మీ బ్రౌజర్‌లో మాత్రమే ఉంటాయి.'],
       ['ఆధార్', 'ఆధార్ నంబర్లు మీ పరికరంలోనే తనిఖీ చేయబడతాయి, ఎప్పుడూ మా సర్వర్లకు పంపబడవు. ఆధార్ లాంటి నంబర్ ఉన్న ఏ అభ్యర్థననైనా సర్వర్ తిరస్కరిస్తుంది.'],
-      ['సహాయ చాట్ ప్రశ్నలు', 'సహాయకుడిని అడిగే ప్రశ్నలు సమాధానం రాయడానికి ఒక AI సేవకు పంపబడతాయి. దానికి ముందు ఆధార్, PAN, మొబైల్ నంబర్లు, OTPలు, ఈమెయిల్ చిరునామాలు ఆటోమేటిక్‌గా తొలగించబడతాయి.'],
+      ['సహాయ చాట్ ప్రశ్నలు', 'సహాయకుడిని అడిగే ప్రశ్నలు సమాధానం రాయడానికి ఒక AI సేవకు (ప్రస్తుతం Groq, Inc., ఇది భారతదేశం వెలుపల డేటాను ప్రాసెస్ చేయవచ్చు) పంపబడతాయి. దానికి ముందు ఆధార్, PAN, మొబైల్ నంబర్లు, OTPలు, ఈమెయిల్ చిరునామాలు ఆటోమేటిక్‌గా తొలగించబడతాయి. దయచేసి చాట్‌లో ఇతర వ్యక్తిగత వివరాలు రాయకండి.'],
       ['కుకీలు & ట్రాకింగ్', 'మేము ప్రకటన లేదా ట్రాకింగ్ కుకీలను ఉపయోగించము.'],
     ]],
   },

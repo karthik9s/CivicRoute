@@ -8,3 +8,6 @@ backend/eval/results.json
 .git
 .github
 *.log
+backend/data/raw
+backend/data/ingest_report.json
+backend/data/refresh.log

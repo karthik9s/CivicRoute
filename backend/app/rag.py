@@ -1,8 +1,10 @@
 """Retrieval-augmented answering with citations, privacy redaction and an offline fallback."""
 from __future__ import annotations
 
+import datetime
 import logging
 import re
+import threading
 from functools import lru_cache
 
 from .config import settings
@@ -112,6 +114,24 @@ def _with_card_context(hits: list[Hit], service_id: str, n_card: int = 2) -> lis
     return hits + extra
 
 
+_budget = {"day": None, "used": 0}
+_budget_lock = threading.Lock()
+
+
+def _llm_budget_ok() -> bool:
+    """Shared daily cap on LLM calls (LLM_DAILY_BUDGET). Protects a free-tier key on a public site."""
+    if settings.llm_daily_budget <= 0:
+        return True
+    today = datetime.date.today()
+    with _budget_lock:
+        if _budget["day"] != today:
+            _budget["day"], _budget["used"] = today, 0
+        if _budget["used"] >= settings.llm_daily_budget:
+            return False
+        _budget["used"] += 1
+        return True
+
+
 def build_context(hits: list[Hit]) -> str:
     parts = []
     for i, h in enumerate(hits, 1):
@@ -186,7 +206,7 @@ def answer(question: str, service_id: str | None = None, lang: str = "en", histo
                           "on the home screen.", "citations": [], "mode": "none", "privacy_note": privacy_note,
                 "suggested_services": intents}
 
-    llm = get_llm()
+    llm = get_llm() if _llm_budget_ok() else None
     mode = "extractive"
     text = ""
     if llm:

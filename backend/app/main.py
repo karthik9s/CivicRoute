@@ -99,6 +99,8 @@ def _reject_sensitive(values: dict) -> None:
 @app.get("/api/health")
 def health():
     store = get_store()
+    if settings.public_mode:  # don't advertise providers/models on a public site
+        return {"status": "ok", "chunks": store.count()}
     llm = get_llm()
     return {"status": "ok", "store": type(store).__name__, "chunks": store.count(),
             "embedder": get_embedder().name, "llm": f"{llm.name}:{llm.model}" if llm else "extractive (no key)"}
