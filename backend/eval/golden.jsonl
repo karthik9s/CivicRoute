@@ -1,0 +1,32 @@
+{"q": "I lost my PAN card, how do I get a duplicate?", "service": "pan_reprint", "must": ["reprint"]}
+{"q": "What is the fee for PAN reprint if I live in India?", "service": "pan_reprint", "must": ["50"]}
+{"q": "Can I change my delivery address while ordering a reprint?", "service": "pan_reprint", "must": ["address"]}
+{"q": "My PAN card got damaged in water, need new card", "service": "pan_reprint", "must": []}
+{"q": "pan card kho gaya hai kya karu", "service": "pan_reprint", "must": []}
+{"q": "Surname changed after marriage, how to update PAN?", "service": "pan_correction", "must": ["marriage"]}
+{"q": "Date of birth on my PAN is wrong", "service": "pan_correction", "must": []}
+{"q": "How do I update my address on the PAN card?", "service": "pan_correction", "must": ["address"]}
+{"q": "Which boxes should I tick on the correction form?", "service": "pan_correction", "must": ["tick"]}
+{"q": "My father's name is misspelled on PAN", "service": "pan_correction", "must": []}
+{"q": "I don't have a PAN, how to get one quickly for free?", "service": "instant_epan", "must": ["free"]}
+{"q": "Is Instant e-PAN available for my 15 year old daughter?", "service": "new_pan_physical", "must": ["minor"]}
+{"q": "Apply PAN for a newly registered company", "service": "new_pan_physical", "must": []}
+{"q": "NRI living in Dubai wants a PAN card", "service": "new_pan_physical", "must": []}
+{"q": "How much does a new physical PAN card cost?", "service": "new_pan_physical", "must": ["payment page"]}
+{"q": "I did not receive the e-PAN email", "service": "epan_download", "must": []}
+{"q": "What is the password of the e-PAN PDF?", "service": "epan_download", "must": ["birth"]}
+{"q": "Download PAN card pdf", "service": "epan_download", "must": []}
+{"q": "My PAN is inoperative, what should I do?", "service": "pan_aadhaar_link", "must": ["1,000"]}
+{"q": "How to pay the late fee for linking Aadhaar and PAN?", "service": "pan_aadhaar_link", "must": ["Other Receipts"]}
+{"q": "PAN Aadhaar link status check", "service": "pan_aadhaar_link", "must": []}
+{"q": "How long after paying the fee can I submit the link request?", "service": "pan_aadhaar_link", "must": ["4"]}
+{"q": "Track my PAN application with acknowledgement number", "service": "track_status", "must": []}
+{"q": "My PAN card has not been delivered yet", "service": "track_status", "must": []}
+{"q": "I accidentally have two PAN numbers", "service": "surrender_duplicate_pan", "must": ["10,000"]}
+{"q": "How to check whether a PAN number is valid?", "service": "verify_pan", "must": []}
+{"q": "Is Protean or UTIITSL better for applying?", "service": null, "must": ["UTIITSL"]}
+{"q": "Is my old PAN valid after PAN 2.0?", "service": null, "must": ["valid"]}
+{"q": "Someone on WhatsApp asked for my OTP to make PAN, is it safe?", "service": null, "must": ["OTP"]}
+{"q": "आधार को पैन से कैसे लिंक करें?", "service": "pan_aadhaar_link", "must": []}
+{"q": "मेरा पैन कार्ड खो गया है", "service": "pan_reprint", "must": []}
+{"q": "నా పాన్ కార్డు పోయింది, కొత్తది ఎలా పొందాలి?", "service": "pan_reprint", "must": []}

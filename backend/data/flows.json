@@ -1,0 +1,227 @@
+{
+  "problems": [
+    {
+      "id": "no_pan",
+      "title": "I don't have a PAN yet",
+      "title_hi": "मेरे पास PAN नहीं है",
+      "icon": "user-plus",
+      "start": "q_no_pan_1",
+      "title_te": "నాకు ఇంకా PAN లేదు"
+    },
+    {
+      "id": "lost_card",
+      "title": "I lost / damaged my PAN card",
+      "title_hi": "मेरा PAN कार्ड खो गया / खराब हो गया",
+      "icon": "copy",
+      "start": "q_lost_1",
+      "title_te": "నా PAN కార్డు పోయింది / పాడైంది"
+    },
+    {
+      "id": "wrong_details",
+      "title": "Something on my PAN is wrong or changed",
+      "title_hi": "PAN पर नाम/जन्मतिथि/पता गलत है",
+      "icon": "edit",
+      "start": "q_wrong_1",
+      "title_te": "నా PAN లో వివరాలు తప్పుగా ఉన్నాయి / మారాయి"
+    },
+    {
+      "id": "epan_missing",
+      "title": "I didn't get my e-PAN / need a PDF",
+      "title_hi": "e-PAN नहीं मिला / PDF चाहिए",
+      "icon": "download",
+      "result": "epan_download",
+      "title_te": "నాకు e-PAN రాలేదు / PDF కావాలి"
+    },
+    {
+      "id": "inoperative",
+      "title": "My PAN is inoperative / link with Aadhaar",
+      "title_hi": "PAN निष्क्रिय है / आधार से लिंक करना है",
+      "icon": "link",
+      "result": "pan_aadhaar_link",
+      "title_te": "నా PAN పనిచేయడం లేదు / ఆధార్‌తో లింక్ చేయాలి"
+    },
+    {
+      "id": "track",
+      "title": "Where is my PAN application?",
+      "title_hi": "मेरा PAN आवेदन कहाँ है?",
+      "icon": "search",
+      "result": "track_status",
+      "title_te": "నా PAN దరఖాస్తు ఎక్కడ ఉంది?"
+    },
+    {
+      "id": "two_pans",
+      "title": "I have two PAN numbers",
+      "title_hi": "मेरे पास दो PAN हैं",
+      "icon": "alert",
+      "result": "surrender_duplicate_pan",
+      "title_te": "నాకు రెండు PAN నంబర్లు ఉన్నాయి"
+    },
+    {
+      "id": "verify",
+      "title": "Check if a PAN is valid",
+      "title_hi": "PAN सही है या नहीं जाँचें",
+      "icon": "shield-check",
+      "result": "verify_pan",
+      "title_te": "PAN సరైనదో కాదో చూడండి"
+    }
+  ],
+  "questions": {
+    "q_no_pan_1": {
+      "text": "Who is the PAN for?",
+      "text_hi": "PAN किसके लिए है?",
+      "options": [
+        {
+          "label": "Me — an Indian adult (18+)",
+          "label_hi": "मेरे लिए — भारतीय वयस्क (18+)",
+          "next": "q_no_pan_2",
+          "label_te": "నా కోసం — భారతీయ వయోజనుడు (18+)"
+        },
+        {
+          "label": "A child (minor)",
+          "label_hi": "बच्चे के लिए (नाबालिग)",
+          "result": "new_pan_physical",
+          "label_te": "పిల్లల కోసం (మైనర్)"
+        },
+        {
+          "label": "NRI / foreign citizen",
+          "label_hi": "NRI / विदेशी नागरिक",
+          "result": "new_pan_physical",
+          "label_te": "NRI / విదేశీ పౌరుడు"
+        },
+        {
+          "label": "Company, firm, trust or HUF",
+          "label_hi": "कंपनी, फर्म, ट्रस्ट या HUF",
+          "result": "new_pan_physical",
+          "label_te": "కంపెనీ, సంస్థ, ట్రస్ట్ లేదా HUF"
+        }
+      ],
+      "text_te": "PAN ఎవరి కోసం?"
+    },
+    "q_no_pan_2": {
+      "text": "Is your mobile number linked to your Aadhaar (you receive Aadhaar OTPs)?",
+      "text_hi": "क्या आपका मोबाइल नंबर आधार से जुड़ा है (आधार OTP आता है)?",
+      "options": [
+        {
+          "label": "Yes",
+          "label_hi": "हाँ",
+          "next": "q_no_pan_3",
+          "label_te": "అవును"
+        },
+        {
+          "label": "No / not sure",
+          "label_hi": "नहीं / पता नहीं",
+          "result": "new_pan_physical",
+          "note": "Instant e-PAN needs Aadhaar OTP. You can link your mobile at an Aadhaar Seva Kendra and come back, or use the form-based application.",
+          "label_te": "లేదు / తెలియదు"
+        }
+      ],
+      "text_te": "మీ మొబైల్ నంబర్ ఆధార్‌తో లింక్ అయిందా (ఆధార్ OTP వస్తుందా)?"
+    },
+    "q_no_pan_3": {
+      "text": "Is a digital e-PAN (free, legally valid PDF) enough for now?",
+      "text_hi": "क्या अभी डिजिटल e-PAN (मुफ़्त, मान्य PDF) काफ़ी है?",
+      "options": [
+        {
+          "label": "Yes — fastest & free",
+          "label_hi": "हाँ — सबसे तेज़ और मुफ़्त",
+          "result": "instant_epan",
+          "label_te": "అవును — వేగంగా, ఉచితంగా"
+        },
+        {
+          "label": "I want a physical card too",
+          "label_hi": "मुझे प्लास्टिक कार्ड भी चाहिए",
+          "result": "instant_epan",
+          "note": "Get the free e-PAN first, then order a physical reprint (≈₹50) — cheaper and faster than a full new application.",
+          "label_te": "నాకు ప్లాస్టిక్ కార్డు కూడా కావాలి"
+        }
+      ],
+      "text_te": "ప్రస్తుతానికి డిజిటల్ e-PAN (ఉచితం, చెల్లుబాటు అయ్యే PDF) సరిపోతుందా?"
+    },
+    "q_lost_1": {
+      "text": "Is a digital e-PAN (PDF, legally valid everywhere) enough, or do you need a physical card?",
+      "text_hi": "क्या डिजिटल e-PAN (PDF) काफ़ी है या प्लास्टिक कार्ड चाहिए?",
+      "options": [
+        {
+          "label": "PDF is fine",
+          "label_hi": "PDF ठीक है",
+          "result": "epan_download",
+          "label_te": "PDF చాలు"
+        },
+        {
+          "label": "I need a physical card",
+          "label_hi": "प्लास्टिक कार्ड चाहिए",
+          "next": "q_lost_2",
+          "label_te": "ప్లాస్టిక్ కార్డు కావాలి"
+        }
+      ],
+      "text_te": "డిజిటల్ e-PAN (PDF, అన్నిచోట్లా చెల్లుతుంది) సరిపోతుందా, లేక ప్లాస్టిక్ కార్డు కావాలా?"
+    },
+    "q_lost_2": {
+      "text": "Are all details (name, DOB, father's name, address, mobile) still correct?",
+      "text_hi": "क्या सभी विवरण (नाम, जन्मतिथि, पिता का नाम, पता, मोबाइल) अभी भी सही हैं?",
+      "options": [
+        {
+          "label": "Yes, all correct",
+          "label_hi": "हाँ, सब सही है",
+          "next": "q_lost_3",
+          "label_te": "అవును, అన్నీ సరిగ్గా ఉన్నాయి"
+        },
+        {
+          "label": "No, something changed",
+          "label_hi": "नहीं, कुछ बदला है",
+          "result": "pan_correction",
+          "note": "A reprint can't change any detail — including the delivery address. Use change/correction; you'll get a new card with the updated details.",
+          "label_te": "లేదు, ఏదో మారింది"
+        }
+      ],
+      "text_te": "అన్ని వివరాలు (పేరు, పుట్టిన తేదీ, తండ్రి పేరు, చిరునామా, మొబైల్) ఇంకా సరిగ్గా ఉన్నాయా?"
+    },
+    "q_lost_3": {
+      "text": "Is your PAN linked with Aadhaar?",
+      "text_hi": "क्या आपका PAN आधार से लिंक है?",
+      "options": [
+        {
+          "label": "Yes",
+          "label_hi": "हाँ",
+          "result": "pan_reprint",
+          "label_te": "అవును"
+        },
+        {
+          "label": "No / not sure",
+          "label_hi": "नहीं / पता नहीं",
+          "result": "pan_aadhaar_link",
+          "note": "Reprint uses Aadhaar OTP, so link PAN with Aadhaar first (check status — it may already be linked), then come back to reprint.",
+          "label_te": "లేదు / తెలియదు"
+        }
+      ],
+      "text_te": "మీ PAN ఆధార్‌తో లింక్ అయిందా?"
+    },
+    "q_wrong_1": {
+      "text": "Is the correct information already in your Aadhaar?",
+      "text_hi": "क्या सही जानकारी आपके आधार में पहले से है?",
+      "options": [
+        {
+          "label": "Yes, Aadhaar is correct",
+          "label_hi": "हाँ, आधार सही है",
+          "result": "pan_correction",
+          "note": "Use paperless (Aadhaar e-KYC + e-Sign) mode — your PAN will be updated to match Aadhaar, no document uploads.",
+          "label_te": "అవును, ఆధార్ సరిగ్గా ఉంది"
+        },
+        {
+          "label": "No, Aadhaar is also wrong",
+          "label_hi": "नहीं, आधार भी गलत है",
+          "result": "pan_correction",
+          "note": "Fix Aadhaar first at an Aadhaar Seva Kendra / myAadhaar if possible — otherwise PAN–Aadhaar linking will fail later. Or apply with physical proof documents.",
+          "label_te": "లేదు, ఆధార్ కూడా తప్పుగా ఉంది"
+        },
+        {
+          "label": "Only my address / mobile / email changed",
+          "label_hi": "केवल पता / मोबाइल / ईमेल बदला है",
+          "result": "pan_correction",
+          "label_te": "నా చిరునామా / మొబైల్ / ఈమెయిల్ మాత్రమే మారింది"
+        }
+      ],
+      "text_te": "సరైన వివరాలు మీ ఆధార్‌లో ఇప్పటికే ఉన్నాయా?"
+    }
+  }
+}

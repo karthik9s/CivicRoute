@@ -1,0 +1,52 @@
+{
+  "updates": [
+    {
+      "date": "2026-10-15",
+      "tag": "Helpline",
+      "title": "Official PAN & e-filing helpline numbers verified from the Income Tax contact page",
+      "url": "https://www.incometax.gov.in/iec/foportal/contact-us",
+      "title_te": "అధికారిక PAN & e-ఫైలింగ్ హెల్ప్‌లైన్ నంబర్లు ఆదాయపు పన్ను సంప్రదింపు పేజీ నుండి ధృవీకరించబడ్డాయి",
+      "title_hi": "आधिकारिक PAN और ई-फाइलिंग हेल्पलाइन नंबर आयकर संपर्क पेज से सत्यापित"
+    },
+    {
+      "date": "2026-10-14",
+      "tag": "Fees",
+      "title": "New PAN / correction fees are shown on the official payment page; reprint ₹50 (India) / ₹959 (abroad) per Protean",
+      "url": "https://onlineservices.proteantech.in/paam/ReprintEPan.html",
+      "title_te": "కొత్త PAN / సవరణ ఫీజు అధికారిక చెల్లింపు పేజీలో చూపబడుతుంది; రీప్రింట్ ₹50 (భారత్) / ₹959 (విదేశం) — Protean ప్రకారం",
+      "title_hi": "नए PAN / सुधार का शुल्क आधिकारिक भुगतान पेज पर दिखता है; रीप्रिंट ₹50 (भारत) / ₹959 (विदेश) — Protean के अनुसार"
+    },
+    {
+      "date": "2026-10-14",
+      "tag": "e-PAN",
+      "title": "e-PAN download is free within 30 days of allotment/change; ₹8.26 after that (Protean)",
+      "url": "https://onlineservices.proteantech.in/paam/requestAndDownloadEPAN.html",
+      "title_te": "e-PAN డౌన్‌లోడ్ కేటాయింపు/మార్పు నుండి 30 రోజుల్లో ఉచితం; ఆ తర్వాత ₹8.26 (Protean)",
+      "title_hi": "e-PAN डाउनलोड आवंटन/बदलाव के 30 दिनों के भीतर मुफ़्त; उसके बाद ₹8.26 (Protean)"
+    },
+    {
+      "date": "2026-10-14",
+      "tag": "Aadhaar",
+      "title": "PAN–Aadhaar late linking: pay via e-Pay Tax under “Other Receipts (500)”, wait 4–5 working days, then link",
+      "url": "https://www.incometax.gov.in/iec/foportal/help/how-to-link-aadhaar",
+      "title_te": "PAN–ఆధార్ ఆలస్య లింకింగ్: e-Pay Tax లో “Other Receipts (500)” కింద చెల్లించి, 4–5 పని దినాలు ఆగి, ఆపై లింక్ చేయండి",
+      "title_hi": "PAN–आधार देर से लिंकिंग: e-Pay Tax में “Other Receipts (500)” के तहत भुगतान करें, 4–5 कार्य दिवस रुकें, फिर लिंक करें"
+    },
+    {
+      "date": "2026-04-01",
+      "tag": "Law",
+      "title": "Income-tax Act 2025 in force from 1 April 2026 – PAN form names may change; always use the form the official portal shows",
+      "url": "https://www.incometax.gov.in/iec/foportal/",
+      "title_te": "1 ఏప్రిల్ 2026 నుండి ఆదాయపు పన్ను చట్టం 2025 అమలులో ఉంది – PAN ఫారం పేర్లు మారవచ్చు; అధికారిక పోర్టల్ చూపే ఫారమే వాడండి",
+      "title_hi": "1 अप्रैल 2026 से आयकर अधिनियम 2025 लागू – PAN फ़ॉर्म के नाम बदल सकते हैं; हमेशा आधिकारिक पोर्टल वाला फ़ॉर्म ही इस्तेमाल करें"
+    },
+    {
+      "date": "2024-11-25",
+      "tag": "PAN 2.0",
+      "title": "Cabinet approved PAN 2.0 – PAN services to move to one unified Income Tax platform; existing PANs stay valid",
+      "url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/nov/doc20241127455901.pdf",
+      "title_te": "PAN 2.0 కు కేబినెట్ ఆమోదం – PAN సేవలు ఒకే ఆదాయపు పన్ను ప్లాట్‌ఫామ్‌కి మారతాయి; ఇప్పటి PANలు చెల్లుబాటులోనే ఉంటాయి",
+      "title_hi": "PAN 2.0 को कैबिनेट की मंज़ूरी – PAN सेवाएँ एक ही आयकर प्लेटफ़ॉर्म पर जाएँगी; मौजूदा PAN मान्य रहेंगे"
+    }
+  ]
+}

@@ -1,0 +1,952 @@
+{
+  "_meta": {
+    "description": "Human-reviewed PAN service cards. Facts here are shown verbatim in the UI, so every fee/step must be checked against the cited official source. 'verify' = figure seen on official/secondary sources but must be re-confirmed on the payment screen.",
+    "last_reviewed": "2026-10-14",
+    "notice": "From 1 April 2026 the Income-tax Act 2025 is in force and PAN 2.0 is being rolled out; form numbers (49A/49AA) and portals may change. The crawler flags changed source pages for review.",
+    "fee_policy": "Fees are quoted only when stated on an official government/agency service page (source URL on each fee). Otherwise the UI says the fee is shown on the official payment page."
+  },
+  "services": [
+    {
+      "id": "instant_epan",
+      "title": "Get a new PAN instantly (free e-PAN)",
+      "short": "Free, paperless PAN in minutes using your Aadhaar OTP",
+      "icon": "zap",
+      "category": "new",
+      "keywords": [
+        "new pan",
+        "first pan",
+        "apply pan",
+        "dont have pan",
+        "never had pan",
+        "instant pan",
+        "free pan",
+        "e-pan aadhaar",
+        "naya pan",
+        "pan banwana",
+        "pan chahiye",
+        "नया पैन",
+        "नया PAN",
+        "కొత్త పాన్"
+      ],
+      "eligibility": [
+        "Indian resident individual with a valid Aadhaar",
+        "Mobile number linked with Aadhaar (for OTP)",
+        "You have never been allotted a PAN",
+        "You are not a minor on the date of application"
+      ],
+      "not_for": [
+        {
+          "when": "You are a minor, NRI/foreign citizen, company, firm or trust",
+          "go_to": "new_pan_physical"
+        },
+        {
+          "when": "You already have a PAN but lost it",
+          "go_to": "epan_download"
+        }
+      ],
+      "documents": [
+        "Aadhaar number (details are taken from Aadhaar e-KYC — no uploads)"
+      ],
+      "fees": [
+        {
+          "label": "Instant e-PAN",
+          "amount": "Free",
+          "verify": false,
+          "source": "https://www.incometax.gov.in/iec/foportal/help/all-topics/e-filing-services/instant-e-pan"
+        }
+      ],
+      "time": "Usually a few minutes; e-PAN PDF is emailed and downloadable from the portal",
+      "steps": [
+        {
+          "title": "Open Instant e-PAN",
+          "detail": "On the Income Tax e-filing portal choose Instant e-PAN → Get New e-PAN.",
+          "url": "https://eportal.incometax.gov.in/iec/foservices/#/pre-login/instant-e-pan"
+        },
+        {
+          "title": "Enter Aadhaar and confirm",
+          "detail": "Enter your 12-digit Aadhaar, tick the confirmation and accept the terms."
+        },
+        {
+          "title": "Verify OTP",
+          "detail": "Enter the 6-digit OTP sent to your Aadhaar-linked mobile."
+        },
+        {
+          "title": "Validate Aadhaar details",
+          "detail": "Your name, DOB, gender and address are pulled from Aadhaar. Optionally validate your email ID."
+        },
+        {
+          "title": "Submit and note acknowledgement",
+          "detail": "Save the acknowledgement number shown. Use it to check status / download e-PAN later.",
+          "url": "https://eportal.incometax.gov.in/iec/foservices/#/pre-login/instant-e-pan"
+        }
+      ],
+      "form_fields": [
+        "aadhaar_local",
+        "mobile",
+        "email"
+      ],
+      "tips": [
+        "Your PAN will carry exactly the details in Aadhaar — fix Aadhaar first if anything is wrong there.",
+        "e-PAN is a legally valid PAN. If you also want a physical card, order a reprint later."
+      ],
+      "common_rejections": [
+        "Mobile number not linked to Aadhaar (OTP never arrives)",
+        "Applicant already holds a PAN (holding two PANs is an offence)",
+        "Date of birth incomplete in Aadhaar (only year of birth)"
+      ],
+      "official_links": [
+        {
+          "label": "Instant e-PAN (Income Tax e-filing)",
+          "url": "https://eportal.incometax.gov.in/iec/foservices/#/pre-login/instant-e-pan",
+          "portal": "Income Tax Department"
+        }
+      ],
+      "sources": [
+        "https://www.incometax.gov.in/iec/foportal/"
+      ],
+      "last_verified": "2026-10-14"
+    },
+    {
+      "id": "new_pan_physical",
+      "title": "Apply for a new PAN card (physical card / special cases)",
+      "short": "Form-based PAN application via Protean or UTIITSL — for minors, NRIs, companies or anyone wanting a physical card",
+      "icon": "file-plus",
+      "category": "new",
+      "keywords": [
+        "new pan card",
+        "physical pan",
+        "form 49a",
+        "49aa",
+        "nri pan",
+        "minor pan",
+        "child pan",
+        "company pan",
+        "firm pan",
+        "foreign citizen pan",
+        "trust pan"
+      ],
+      "eligibility": [
+        "Anyone who has never been allotted a PAN",
+        "Indian citizens (Form 49A) or foreign citizens/entities (Form 49AA) — forms may be renamed under the Income-tax Act 2025; follow the form the portal shows",
+        "Minors apply through a parent/guardian representative"
+      ],
+      "not_for": [
+        {
+          "when": "Adult Indian resident with Aadhaar linked to mobile who only needs a PAN quickly",
+          "go_to": "instant_epan"
+        }
+      ],
+      "documents": [
+        "Proof of identity (e.g. Aadhaar, passport, voter ID, driving licence)",
+        "Proof of address (e.g. Aadhaar, passport, bank statement, utility bill not older than 3 months)",
+        "Proof of date of birth (e.g. Aadhaar, birth certificate, matriculation certificate, passport)",
+        "Recent colour photograph and signature (if applying with physical/scanned documents)",
+        "For minors: representative assessee's (parent's) ID and address proof"
+      ],
+      "fees": [
+        {
+          "label": "Application fee (physical card or e-PAN only; India or abroad)",
+          "amount": "Shown on the official payment page before you pay",
+          "verify": true,
+          "note": "The exact fee depends on the options you choose and is displayed by Protean/UTIITSL on their payment step. CivicRoute does not quote third-party figures."
+        }
+      ],
+      "time": "Not stated on the official page — track status online with your acknowledgement number",
+      "steps": [
+        {
+          "title": "Pick a portal",
+          "detail": "Protean (NSDL) or UTIITSL — both are official. Choose one and stay on it for the whole application.",
+          "url": "https://onlineservices.proteantech.in/paam/endUserRegisterContact.html"
+        },
+        {
+          "title": "Choose application type & category",
+          "detail": "New PAN – Indian Citizen (or Foreign Citizen) and the category (Individual, Company, Firm, HUF, Trust…)."
+        },
+        {
+          "title": "Choose submission mode",
+          "detail": "Paperless (Aadhaar e-KYC + e-Sign, cheapest) or physical documents (scan upload or courier)."
+        },
+        {
+          "title": "Fill personal, contact and address details",
+          "detail": "Name exactly as in your ID proof. Father's name is mandatory for individuals (mother's name optional)."
+        },
+        {
+          "title": "Upload photo, signature and proofs",
+          "detail": "Only if not using full e-KYC. Check size limits before uploading."
+        },
+        {
+          "title": "Pay the fee",
+          "detail": "Pay on the portal's own payment page (UPI / net banking / card / demand draft). Never pay on a third-party page."
+        },
+        {
+          "title": "e-Sign or courier documents",
+          "detail": "Authenticate with Aadhaar OTP/e-Sign, or send signed acknowledgement + documents to the address printed on it within 15 days."
+        },
+        {
+          "title": "Save acknowledgement number",
+          "detail": "15-digit acknowledgement (Protean) or coupon number (UTIITSL) — needed to track status.",
+          "url": "https://tin.tin.proteantech.in/pantan/StatusTrack.html"
+        }
+      ],
+      "form_fields": [
+        "full_name",
+        "name_on_card",
+        "father_name",
+        "mother_name",
+        "dob",
+        "gender",
+        "mobile",
+        "email",
+        "address_line1",
+        "address_line2",
+        "city",
+        "state",
+        "pincode",
+        "photo",
+        "signature",
+        "proofs"
+      ],
+      "tips": [
+        "Name, DOB and father's name must match your proof documents letter-for-letter — mismatch is the #1 reason for rejection.",
+        "Paperless mode (Aadhaar e-KYC + e-Sign) avoids couriering documents."
+      ],
+      "common_rejections": [
+        "Name/DOB on form differs from the proof document",
+        "Photo or signature unclear, wrong size, or signature outside the box",
+        "Physical documents not received within 15 days",
+        "Applicant already holds a PAN"
+      ],
+      "official_links": [
+        {
+          "label": "Protean – Online PAN application",
+          "url": "https://onlineservices.proteantech.in/paam/endUserRegisterContact.html",
+          "portal": "Protean (NSDL)"
+        },
+        {
+          "label": "UTIITSL – PAN services",
+          "url": "https://www.pan.utiitsl.com/",
+          "portal": "UTIITSL"
+        }
+      ],
+      "sources": [
+        "https://tinpan.proteantech.in/",
+        "https://www.pan.utiitsl.com/"
+      ],
+      "last_verified": "2026-10-14"
+    },
+    {
+      "id": "pan_correction",
+      "title": "Correct or change details on your PAN",
+      "short": "Fix name, date of birth, father's name, photo, signature, gender, address or contact details",
+      "icon": "edit",
+      "category": "update",
+      "keywords": [
+        "name change",
+        "change name",
+        "correction",
+        "wrong name",
+        "spelling mistake",
+        "wrong dob",
+        "date of birth wrong",
+        "change address",
+        "update photo",
+        "change signature",
+        "marriage name change",
+        "surname change",
+        "father name wrong",
+        "gender change",
+        "update mobile",
+        "update email",
+        "galat naam",
+        "sudhar",
+        "गलत",
+        "नाम बदल",
+        "सुधार",
+        "पता बदल",
+        "తప్పు",
+        "పేరు మార్పు",
+        "సవరణ"
+      ],
+      "eligibility": [
+        "Anyone who already has a PAN and needs any detail changed"
+      ],
+      "not_for": [
+        {
+          "when": "Details are correct and you just lost/damaged the card",
+          "go_to": "pan_reprint"
+        },
+        {
+          "when": "You hold two PANs",
+          "go_to": "surrender_duplicate_pan"
+        }
+      ],
+      "documents": [
+        "Copy of PAN (or PAN number) as proof of PAN",
+        "Proof of identity and address and date of birth (as for a new PAN)",
+        "Proof supporting the change: e.g. marriage certificate / gazette notification for name change, birth certificate / matriculation certificate for DOB",
+        "Photo and signature if updating them (physical/scan mode)"
+      ],
+      "fees": [
+        {
+          "label": "Application fee (physical card or e-PAN only; India or abroad)",
+          "amount": "Shown on the official payment page before you pay",
+          "verify": true,
+          "note": "The exact fee depends on the options you choose and is displayed by Protean/UTIITSL on their payment step. CivicRoute does not quote third-party figures."
+        }
+      ],
+      "time": "Not stated on the official page — track status online with your acknowledgement number",
+      "steps": [
+        {
+          "title": "Open the change/correction application",
+          "detail": "On Protean choose Application Type → 'Changes or Correction in existing PAN Data / Reprint of PAN Card'. UTIITSL has an equivalent 'Change/Correction in PAN Card details'.",
+          "url": "https://onlineservices.proteantech.in/paam/endUserRegisterContact.html"
+        },
+        {
+          "title": "Enter PAN and register",
+          "detail": "Fill category, name, DOB, email, mobile and your PAN. Note the token number you get."
+        },
+        {
+          "title": "Tick ONLY the fields you want to change",
+          "detail": "Each field has a checkbox on its left. Fill all fields, but tick only the ones being corrected."
+        },
+        {
+          "title": "Upload proofs",
+          "detail": "Attach proof for the changed field plus identity/address/DOB proof."
+        },
+        {
+          "title": "Pay on the official payment page",
+          "detail": "Use the portal's own payment gateway."
+        },
+        {
+          "title": "e-Sign or courier documents",
+          "detail": "Aadhaar e-Sign (paperless) or post the signed acknowledgement with documents within 15 days."
+        },
+        {
+          "title": "Track using the acknowledgement number",
+          "detail": "Status is visible on the Protean/UTIITSL tracking page.",
+          "url": "https://tin.tin.proteantech.in/pantan/StatusTrack.html"
+        }
+      ],
+      "form_fields": [
+        "pan",
+        "change_fields",
+        "full_name",
+        "name_on_card",
+        "father_name",
+        "dob",
+        "gender",
+        "mobile",
+        "email",
+        "address_line1",
+        "address_line2",
+        "city",
+        "state",
+        "pincode",
+        "photo",
+        "signature",
+        "proofs"
+      ],
+      "tips": [
+        "If Aadhaar already has the correct details, paperless e-KYC is fastest — the PAN will mirror Aadhaar.",
+        "Individuals whose Aadhaar is correct can also use 'Update PAN' under Instant e-PAN on the Income Tax portal to update PAN details as per Aadhaar e-KYC (check current availability on the portal).",
+        "For a surname change after marriage, keep the marriage certificate or gazette notification ready.",
+        "Your PAN number never changes — only the details on it."
+      ],
+      "common_rejections": [
+        "Field ticked for change but no supporting proof uploaded",
+        "New name doesn't match the proof document",
+        "Name in Aadhaar differs from the requested name (paperless mode uses Aadhaar data)"
+      ],
+      "official_links": [
+        {
+          "label": "Protean – Change/Correction in PAN",
+          "url": "https://onlineservices.proteantech.in/paam/endUserRegisterContact.html",
+          "portal": "Protean (NSDL)"
+        },
+        {
+          "label": "UTIITSL – PAN services",
+          "url": "https://www.pan.utiitsl.com/",
+          "portal": "UTIITSL"
+        }
+      ],
+      "sources": [
+        "https://tinpan.proteantech.in/",
+        "https://www.pan.utiitsl.com/"
+      ],
+      "last_verified": "2026-10-14"
+    },
+    {
+      "id": "pan_reprint",
+      "title": "Get a duplicate / reprint of your PAN card",
+      "short": "Lost, stolen or damaged card — same PAN, same details, new card delivered",
+      "icon": "copy",
+      "category": "card",
+      "keywords": [
+        "duplicate pan",
+        "lost pan",
+        "pan lost",
+        "stolen pan",
+        "damaged pan",
+        "reprint",
+        "new copy",
+        "pan card kho gaya",
+        "card missing",
+        "card torn",
+        "replace pan card",
+        "pan card delivery",
+        "खो गया",
+        "खो गई",
+        "गुम",
+        "डुप्लीकेट",
+        "పోయింది",
+        "డూప్లికేట్",
+        "కార్డు పోయింది"
+      ],
+      "eligibility": [
+        "You already have a PAN and none of the details need changing",
+        "Aadhaar-based OTP verification requires PAN–Aadhaar linking"
+      ],
+      "not_for": [
+        {
+          "when": "Any detail (name, DOB, address…) must change",
+          "go_to": "pan_correction"
+        },
+        {
+          "when": "A PDF copy is enough (it's legally valid)",
+          "go_to": "epan_download"
+        }
+      ],
+      "documents": [
+        "PAN number",
+        "Date of birth",
+        "Aadhaar (for OTP) — must be linked to the PAN"
+      ],
+      "fees": [
+        {
+          "label": "Reprint, dispatched within India",
+          "amount": "₹50 (incl. taxes)",
+          "verify": false,
+          "source": "https://onlineservices.proteantech.in/paam/ReprintEPan.html"
+        },
+        {
+          "label": "Reprint, dispatched outside India",
+          "amount": "₹959 (incl. taxes)",
+          "verify": false,
+          "source": "https://onlineservices.proteantech.in/paam/ReprintEPan.html"
+        }
+      ],
+      "time": "Not stated on the official page — track the dispatch status online with your acknowledgement number",
+      "steps": [
+        {
+          "title": "Find out which agency issued your PAN",
+          "detail": "Use the portal that issued your PAN/last update (Protean or UTIITSL). If unsure, try Protean first — it tells you if the PAN was processed elsewhere."
+        },
+        {
+          "title": "Open 'Reprint of PAN Card'",
+          "detail": "Enter PAN, Aadhaar (individuals) and date of birth, accept the declaration.",
+          "url": "https://onlineservices.proteantech.in/paam/ReprintEPan.html"
+        },
+        {
+          "title": "Choose OTP destination",
+          "detail": "OTP goes to the mobile/email registered with the Income Tax Department."
+        },
+        {
+          "title": "Pay the reprint fee",
+          "detail": "Pay on the portal's own payment page."
+        },
+        {
+          "title": "Delivery",
+          "detail": "The card is posted to the communication address in the latest ITD records. To deliver elsewhere, you must apply for change/correction instead."
+        }
+      ],
+      "form_fields": [
+        "pan",
+        "dob",
+        "aadhaar_local",
+        "mobile",
+        "email"
+      ],
+      "tips": [
+        "The delivery address cannot be changed in a reprint — it uses the address in the latest ITD records.",
+        "Need it today? Download the e-PAN PDF; it is as valid as the physical card.",
+        "If your card was stolen, consider filing a police complaint in case of misuse."
+      ],
+      "common_rejections": [
+        "PAN not linked with Aadhaar (OTP fails)",
+        "Mobile/email in ITD records is outdated (OTP never arrives) — update via correction"
+      ],
+      "official_links": [
+        {
+          "label": "Protean – Reprint of PAN card",
+          "url": "https://onlineservices.proteantech.in/paam/ReprintEPan.html",
+          "portal": "Protean (NSDL)"
+        },
+        {
+          "label": "UTIITSL – PAN services",
+          "url": "https://www.pan.utiitsl.com/",
+          "portal": "UTIITSL"
+        }
+      ],
+      "sources": [
+        "https://onlineservices.proteantech.in/paam/ReprintEPan.html"
+      ],
+      "last_verified": "2026-10-14"
+    },
+    {
+      "id": "epan_download",
+      "title": "Download your e-PAN (PDF)",
+      "short": "e-PAN email not received, or you need a digital copy right now",
+      "icon": "download",
+      "category": "card",
+      "keywords": [
+        "download e-pan",
+        "epan",
+        "e pan",
+        "pan pdf",
+        "digital pan",
+        "e-pan not received",
+        "e-pan email",
+        "soft copy",
+        "pan copy",
+        "pan download",
+        "डाउनलोड",
+        "ई-पैन",
+        "డౌన్‌లోడ్"
+      ],
+      "eligibility": [
+        "Anyone with an allotted PAN"
+      ],
+      "not_for": [
+        {
+          "when": "You need a physical card",
+          "go_to": "pan_reprint"
+        }
+      ],
+      "documents": [
+        "PAN or acknowledgement number",
+        "Date of birth",
+        "Aadhaar (for some flows)"
+      ],
+      "fees": [
+        {
+          "label": "Protean: PAN allotted/changed in the last 30 days",
+          "amount": "Free",
+          "verify": false,
+          "source": "https://onlineservices.proteantech.in/paam/requestAndDownloadEPAN.html"
+        },
+        {
+          "label": "Protean: after 30 days",
+          "amount": "₹8.26 (incl. taxes)",
+          "verify": false,
+          "source": "https://onlineservices.proteantech.in/paam/requestAndDownloadEPAN.html"
+        },
+        {
+          "label": "Instant e-PAN users (Income Tax portal)",
+          "amount": "Free",
+          "verify": false,
+          "source": "https://www.incometax.gov.in/iec/foportal/help/all-topics/e-filing-services/instant-e-pan"
+        }
+      ],
+      "time": "Immediate",
+      "steps": [
+        {
+          "title": "If you got PAN via Instant e-PAN",
+          "detail": "Income Tax portal → Instant e-PAN → Check Status/Download PAN → Aadhaar + OTP.",
+          "url": "https://eportal.incometax.gov.in/iec/foservices/#/pre-login/instant-e-pan"
+        },
+        {
+          "title": "If PAN was issued by Protean (NSDL)",
+          "detail": "Use 'Download e-PAN / e-PAN XML' with your PAN or acknowledgement number.",
+          "url": "https://onlineservices.proteantech.in/paam/requestAndDownloadEPAN.html"
+        },
+        {
+          "title": "If PAN was issued by UTIITSL",
+          "detail": "Use UTIITSL's e-PAN download service.",
+          "url": "https://www.pan.utiitsl.com/"
+        },
+        {
+          "title": "Open the PDF",
+          "detail": "The e-PAN PDF is usually password-protected with your date of birth in DDMMYYYY format."
+        }
+      ],
+      "form_fields": [
+        "pan",
+        "dob"
+      ],
+      "tips": [
+        "Didn't get the e-PAN email? Check spam, and confirm the email registered with ITD — you may need a correction to update it.",
+        "The PDF password is your date of birth as DDMMYYYY."
+      ],
+      "common_rejections": [
+        "Trying the wrong agency's portal for your PAN",
+        "Outdated mobile/email in ITD records"
+      ],
+      "official_links": [
+        {
+          "label": "Protean – Download e-PAN",
+          "url": "https://onlineservices.proteantech.in/paam/requestAndDownloadEPAN.html",
+          "portal": "Protean (NSDL)"
+        },
+        {
+          "label": "Instant e-PAN status/download",
+          "url": "https://eportal.incometax.gov.in/iec/foservices/#/pre-login/instant-e-pan",
+          "portal": "Income Tax Department"
+        }
+      ],
+      "sources": [
+        "https://onlineservices.proteantech.in/paam/requestAndDownloadEPAN.html"
+      ],
+      "last_verified": "2026-10-14"
+    },
+    {
+      "id": "pan_aadhaar_link",
+      "title": "Link PAN with Aadhaar / fix an inoperative PAN",
+      "short": "PAN inoperative, bank/ITR blocked, or you need to link Aadhaar",
+      "icon": "link",
+      "category": "link",
+      "keywords": [
+        "link aadhaar",
+        "aadhaar link",
+        "pan aadhaar link",
+        "inoperative pan",
+        "pan inoperative",
+        "pan deactivated",
+        "pan not working",
+        "pan blocked",
+        "1000 fine",
+        "penalty link",
+        "link status",
+        "operative",
+        "लिंक",
+        "निष्क्रिय",
+        "లింక్",
+        "ఆధార్ లింక్"
+      ],
+      "eligibility": [
+        "PAN holders who are not in an exempted category"
+      ],
+      "not_for": [
+        {
+          "when": "Name/DOB mismatch between PAN and Aadhaar stops linking",
+          "go_to": "pan_correction"
+        }
+      ],
+      "documents": [
+        "PAN",
+        "Aadhaar number",
+        "Mobile number for OTP"
+      ],
+      "fees": [
+        {
+          "label": "Late linking fee (e-Pay Tax, 'Other Receipts (500)')",
+          "amount": "₹1,000 — pre-filled by the e-Pay Tax page",
+          "verify": true,
+          "note": "The amount is pre-filled on the official e-Pay Tax challan; pay exactly what it shows.",
+          "source": "https://www.incometax.gov.in/iec/foportal/help/how-to-link-aadhaar"
+        }
+      ],
+      "time": "Wait 4–5 working days after paying before submitting the link request; PAN typically becomes operative within ~30 days of linking",
+      "steps": [
+        {
+          "title": "Check current status first",
+          "detail": "Income Tax portal → Link Aadhaar Status. If already linked, nothing to do.",
+          "url": "https://eportal.incometax.gov.in/iec/foservices/#/pre-login/link-aadhaar-status"
+        },
+        {
+          "title": "Pay the late fee",
+          "detail": "Link Aadhaar → enter PAN & Aadhaar → 'Continue to Pay Through e-Pay Tax' → OTP → Income Tax tile → choose Assessment Year and 'Other Receipts (500)' → pay at your bank.",
+          "url": "https://eportal.incometax.gov.in/iec/foservices/#/pre-login/bl-link-aadhaar"
+        },
+        {
+          "title": "Wait for payment to reflect",
+          "detail": "Allow 4–5 working days for the challan to be verified."
+        },
+        {
+          "title": "Submit the link request",
+          "detail": "Link Aadhaar → PAN + Aadhaar → Validate → confirm name as per Aadhaar → OTP.",
+          "url": "https://eportal.incometax.gov.in/iec/foservices/#/pre-login/bl-link-aadhaar"
+        },
+        {
+          "title": "Re-check status",
+          "detail": "Use Link Aadhaar Status until it shows linked."
+        }
+      ],
+      "form_fields": [
+        "pan",
+        "aadhaar_local",
+        "mobile"
+      ],
+      "tips": [
+        "Name, DOB and gender must match between PAN and Aadhaar. If they don't, correct PAN (or Aadhaar) first.",
+        "If your Aadhaar is linked to a different PAN, contact your Jurisdictional Assessing Officer (Know Your AO on the portal)."
+      ],
+      "common_rejections": [
+        "Demographic mismatch between PAN and Aadhaar",
+        "Link request submitted before the fee payment was verified"
+      ],
+      "official_links": [
+        {
+          "label": "Link Aadhaar (Income Tax e-filing)",
+          "url": "https://eportal.incometax.gov.in/iec/foservices/#/pre-login/bl-link-aadhaar",
+          "portal": "Income Tax Department"
+        },
+        {
+          "label": "Link Aadhaar Status",
+          "url": "https://eportal.incometax.gov.in/iec/foservices/#/pre-login/link-aadhaar-status",
+          "portal": "Income Tax Department"
+        },
+        {
+          "label": "How to link Aadhaar (official user manual)",
+          "url": "https://www.incometax.gov.in/iec/foportal/help/how-to-link-aadhaar",
+          "portal": "Income Tax Department"
+        }
+      ],
+      "sources": [
+        "https://www.incometax.gov.in/iec/foportal/help/how-to-link-aadhaar"
+      ],
+      "last_verified": "2026-10-14"
+    },
+    {
+      "id": "track_status",
+      "title": "Track your PAN application",
+      "short": "Applied already? See where your PAN or card is",
+      "icon": "search",
+      "category": "status",
+      "keywords": [
+        "track",
+        "status",
+        "where is my pan",
+        "application status",
+        "acknowledgement",
+        "coupon number",
+        "not delivered",
+        "delivery status",
+        "pan dispatched",
+        "kab aayega",
+        "स्थिति",
+        "कहाँ है",
+        "స్థితి"
+      ],
+      "eligibility": [
+        "Anyone who has submitted a PAN application"
+      ],
+      "not_for": [],
+      "documents": [
+        "15-digit acknowledgement number (Protean) or coupon number (UTIITSL), or Instant e-PAN acknowledgement"
+      ],
+      "fees": [
+        {
+          "label": "Status check",
+          "amount": "Free",
+          "verify": false
+        }
+      ],
+      "time": "Immediate",
+      "steps": [
+        {
+          "title": "Protean (NSDL) applications",
+          "detail": "Application type 'PAN – New/Change Request' + acknowledgement number.",
+          "url": "https://tin.tin.proteantech.in/pantan/StatusTrack.html"
+        },
+        {
+          "title": "UTIITSL applications",
+          "detail": "Enter coupon number or PAN.",
+          "url": "https://www.trackpan.utiitsl.com/PANONLINE/forms/TrackPan/trackApp"
+        },
+        {
+          "title": "Instant e-PAN",
+          "detail": "Instant e-PAN → Check Status/Download PAN.",
+          "url": "https://eportal.incometax.gov.in/iec/foservices/#/pre-login/instant-e-pan"
+        },
+        {
+          "title": "Once dispatched",
+          "detail": "The status page shows the India Post consignment number — track it on India Post."
+        }
+      ],
+      "form_fields": [
+        "ack_number"
+      ],
+      "tips": [
+        "Save your acknowledgement number in CivicRoute's tracker so you never lose it."
+      ],
+      "common_rejections": [],
+      "official_links": [
+        {
+          "label": "Protean – Track PAN status",
+          "url": "https://tin.tin.proteantech.in/pantan/StatusTrack.html",
+          "portal": "Protean (NSDL)"
+        },
+        {
+          "label": "UTIITSL – Track PAN",
+          "url": "https://www.trackpan.utiitsl.com/PANONLINE/forms/TrackPan/trackApp",
+          "portal": "UTIITSL"
+        }
+      ],
+      "sources": [
+        "https://tin.tin.proteantech.in/pantan/StatusTrack.html"
+      ],
+      "last_verified": "2026-10-14"
+    },
+    {
+      "id": "verify_pan",
+      "title": "Verify a PAN / find your PAN details",
+      "short": "Check a PAN is valid and active, or confirm the name and status on it",
+      "icon": "shield-check",
+      "category": "status",
+      "keywords": [
+        "verify pan",
+        "check pan valid",
+        "pan active",
+        "know your pan",
+        "forgot pan number",
+        "pan number lost",
+        "pan details",
+        "pan valid hai"
+      ],
+      "eligibility": [
+        "Anyone"
+      ],
+      "not_for": [],
+      "documents": [
+        "PAN, full name, date of birth, mobile for OTP"
+      ],
+      "fees": [
+        {
+          "label": "Verification",
+          "amount": "Free",
+          "verify": false
+        }
+      ],
+      "time": "Immediate",
+      "steps": [
+        {
+          "title": "Open Verify Your PAN",
+          "detail": "Income Tax portal → Quick Links → Verify Your PAN.",
+          "url": "https://eportal.incometax.gov.in/iec/foservices/#/pre-login/verifyYourPAN"
+        },
+        {
+          "title": "Enter details and OTP",
+          "detail": "PAN, full name, DOB and a mobile number for OTP."
+        },
+        {
+          "title": "Read the result",
+          "detail": "Shows whether the PAN is active and the details match."
+        }
+      ],
+      "form_fields": [
+        "pan",
+        "full_name",
+        "dob",
+        "mobile"
+      ],
+      "tips": [
+        "Forgot your PAN number? If PAN is linked to Aadhaar, the e-PAN download via Instant e-PAN (Aadhaar OTP) shows it."
+      ],
+      "common_rejections": [],
+      "official_links": [
+        {
+          "label": "Verify Your PAN",
+          "url": "https://eportal.incometax.gov.in/iec/foservices/#/pre-login/verifyYourPAN",
+          "portal": "Income Tax Department"
+        }
+      ],
+      "sources": [
+        "https://www.incometax.gov.in/iec/foportal/"
+      ],
+      "last_verified": "2026-10-14"
+    },
+    {
+      "id": "surrender_duplicate_pan",
+      "title": "Surrender an extra (duplicate) PAN",
+      "short": "You have two PAN numbers — keep one, surrender the other",
+      "icon": "alert",
+      "category": "update",
+      "keywords": [
+        "two pan",
+        "2 pan",
+        "multiple pan",
+        "two pan cards",
+        "surrender pan",
+        "cancel pan",
+        "extra pan",
+        "do pan card",
+        "duplicate pan number",
+        "दो पैन",
+        "రెండు పాన్"
+      ],
+      "eligibility": [
+        "Anyone who has been allotted more than one PAN"
+      ],
+      "not_for": [
+        {
+          "when": "You only lost your card (one PAN number)",
+          "go_to": "pan_reprint"
+        }
+      ],
+      "documents": [
+        "The PAN you will keep",
+        "The PAN(s) to surrender (number / copy)",
+        "Identity proof"
+      ],
+      "fees": [
+        {
+          "label": "Change/correction application used to surrender",
+          "amount": "Shown on the official payment page before you pay",
+          "verify": true
+        },
+        {
+          "label": "Penalty risk for holding more than one PAN (Income-tax law)",
+          "amount": "Up to ₹10,000",
+          "verify": true
+        }
+      ],
+      "time": "Depends on Assessing Officer processing",
+      "steps": [
+        {
+          "title": "Decide which PAN to keep",
+          "detail": "Keep the one used for bank accounts, ITRs and Aadhaar linking."
+        },
+        {
+          "title": "Apply via change/correction form",
+          "detail": "On Protean/UTIITSL's change/correction application, mention the PAN(s) to be surrendered in the 'other PANs' section and attach copies.",
+          "url": "https://onlineservices.proteantech.in/paam/endUserRegisterContact.html"
+        },
+        {
+          "title": "Or write to your Assessing Officer",
+          "detail": "Send a letter with both PAN details to your Jurisdictional AO.",
+          "url": "https://eportal.incometax.gov.in/iec/foservices/#/pre-login/knowYourAO"
+        }
+      ],
+      "form_fields": [
+        "pan",
+        "other_pans",
+        "full_name",
+        "dob",
+        "mobile",
+        "email"
+      ],
+      "tips": [
+        "Act quickly — holding two PANs can attract a penalty."
+      ],
+      "common_rejections": [
+        "Other PAN not mentioned / no copy attached"
+      ],
+      "official_links": [
+        {
+          "label": "Protean – Change/Correction (to surrender)",
+          "url": "https://onlineservices.proteantech.in/paam/endUserRegisterContact.html",
+          "portal": "Protean (NSDL)"
+        },
+        {
+          "label": "Know Your AO",
+          "url": "https://eportal.incometax.gov.in/iec/foservices/#/pre-login/knowYourAO",
+          "portal": "Income Tax Department"
+        }
+      ],
+      "sources": [
+        "https://tinpan.proteantech.in/"
+      ],
+      "last_verified": "2026-10-14"
+    }
+  ]
+}

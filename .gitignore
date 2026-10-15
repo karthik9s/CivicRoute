@@ -1,0 +1,12 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+frontend/dist/
+backend/data/raw/
+backend/data/index/
+backend/data/ingest_report.json
+.pytest_cache/
+backend/data/refresh.log
+backend/eval/results.json

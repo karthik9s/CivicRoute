@@ -1,0 +1,60 @@
+{
+  "_source": "https://www.incometax.gov.in/iec/foportal/contact-us",
+  "_verified": "2026-10-15",
+  "helplines": [
+    {
+      "id": "efiling",
+      "name": "Income Tax e-Filing & CPC helpdesk",
+      "for": "Instant e-PAN, PAN–Aadhaar linking, e-filing portal login & services",
+      "phones": [
+        "1800 103 0025",
+        "1800 419 0025",
+        "+91-80-46122000"
+      ],
+      "hours": "08:00–20:00, Monday to Friday",
+      "toll_free": true,
+      "url": "https://www.incometax.gov.in/iec/foportal/contact-us",
+      "portal": "Income Tax Department",
+      "name_te": "ఆదాయపు పన్ను e-ఫైలింగ్ & CPC హెల్ప్‌డెస్క్",
+      "for_te": "తక్షణ e-PAN, PAN–ఆధార్ లింకింగ్, e-ఫైలింగ్ పోర్టల్ లాగిన్ & సేవలు",
+      "hours_te": "ఉదయం 08:00–రాత్రి 20:00, సోమవారం నుండి శుక్రవారం",
+      "name_hi": "आयकर ई-फाइलिंग और CPC हेल्पडेस्क",
+      "for_hi": "तत्काल e-PAN, PAN–आधार लिंकिंग, ई-फाइलिंग पोर्टल लॉगिन और सेवाएँ",
+      "hours_hi": "08:00–20:00, सोमवार से शुक्रवार"
+    },
+    {
+      "id": "protean",
+      "name": "Tax Information Network – Protean (NSDL)",
+      "for": "PAN applications, corrections, reprints and status through Protean",
+      "phones": [
+        "+91-20-27218080"
+      ],
+      "hours": "07:00–23:00, all days",
+      "toll_free": false,
+      "url": "https://www.incometax.gov.in/iec/foportal/contact-us",
+      "portal": "Protean (NSDL)",
+      "name_te": "టాక్స్ ఇన్ఫర్మేషన్ నెట్‌వర్క్ – Protean (NSDL)",
+      "for_te": "Protean ద్వారా PAN దరఖాస్తులు, సవరణలు, రీప్రింట్లు, స్థితి",
+      "hours_te": "07:00–23:00, అన్ని రోజులు",
+      "name_hi": "टैक्स इन्फॉर्मेशन नेटवर्क – Protean (NSDL)",
+      "for_hi": "Protean के ज़रिए PAN आवेदन, सुधार, रीप्रिंट और स्थिति",
+      "hours_hi": "07:00–23:00, सभी दिन"
+    },
+    {
+      "id": "utiitsl",
+      "name": "UTIITSL PAN services",
+      "for": "PAN applications made through UTIITSL",
+      "phones": [],
+      "hours": "See the UTIITSL website",
+      "toll_free": false,
+      "url": "https://www.pan.utiitsl.com/",
+      "portal": "UTIITSL",
+      "name_te": "UTIITSL PAN సేవలు",
+      "for_te": "UTIITSL ద్వారా చేసిన PAN దరఖాస్తులు",
+      "hours_te": "UTIITSL వెబ్‌సైట్ చూడండి",
+      "name_hi": "UTIITSL PAN सेवाएँ",
+      "for_hi": "UTIITSL के ज़रिए किए गए PAN आवेदन",
+      "hours_hi": "UTIITSL वेबसाइट देखें"
+    }
+  ]
+}

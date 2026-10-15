@@ -1,0 +1,59 @@
+# Official sources crawled into the knowledge base.
+# Only government / government-appointed agency domains are allowed (see ALLOWED_DOMAINS in crawler.py).
+# service_ids tag chunks so retrieval can be scoped to the service the user is looking at.
+sources:
+  - url: https://www.incometax.gov.in/iec/foportal/help/how-to-link-aadhaar
+    title: How to link Aadhaar with PAN (Income Tax e-filing user manual)
+    portal: Income Tax Department
+    service_ids: [pan_aadhaar_link]
+  - url: https://www.incometax.gov.in/iec/foportal/hi/help/how-to-link-aadhaar
+    title: आधार को PAN से लिंक कैसे करें (आयकर ई-फाइलिंग)
+    portal: Income Tax Department
+    service_ids: [pan_aadhaar_link]
+    lang: hi
+  - url: https://www.incometax.gov.in/iec/foportal/te/help/how-to-link-aadhaar
+    title: ఆధార్‌ను PAN తో లింక్ చేయడం (ఆదాయపు పన్ను ఈ-ఫైలింగ్)
+    portal: Income Tax Department
+    service_ids: [pan_aadhaar_link]
+    lang: te
+  - url: https://www.incometax.gov.in/iec/foportal/help/how-to-generate-instant-e-pan
+    title: How to generate Instant e-PAN (Income Tax e-filing)
+    portal: Income Tax Department
+    service_ids: [instant_epan, epan_download]
+  - url: https://www.incometax.gov.in/iec/foportal/help/all-topics/e-filing-services/instant-e-pan
+    title: Instant e-PAN FAQs (Income Tax e-filing)
+    portal: Income Tax Department
+    service_ids: [instant_epan, epan_download, pan_correction]
+  - url: https://www.incometax.gov.in/iec/foportal/help/all-topics/e-filing-services/instant-e-pan/instant-UM
+    title: Instant e-PAN user manual (Income Tax e-filing)
+    portal: Income Tax Department
+    service_ids: [instant_epan, epan_download, pan_correction]
+  - url: https://www.incometax.gov.in/iec/foportal/hi/help/all-topics/e-filing-services/instant-e-pan
+    title: तत्काल ई-पैन (आयकर ई-फाइलिंग)
+    portal: Income Tax Department
+    service_ids: [instant_epan, epan_download]
+    lang: hi
+  - url: https://onlineservices.proteantech.in/paam/ReprintEPan.html
+    title: Reprint of PAN card (Protean)
+    portal: Protean (NSDL)
+    service_ids: [pan_reprint]
+  - url: https://onlineservices.proteantech.in/paam/requestAndDownloadEPAN.html
+    title: Download e-PAN (Protean)
+    portal: Protean (NSDL)
+    service_ids: [epan_download]
+  - url: https://onlineservices.proteantech.in/paam/endUserRegisterContact.html
+    title: Online PAN application – new / change / correction (Protean)
+    portal: Protean (NSDL)
+    service_ids: [new_pan_physical, pan_correction, surrender_duplicate_pan]
+  - url: https://tin.tin.proteantech.in/pantan/StatusTrack.html
+    title: Track PAN application status (Protean)
+    portal: Protean (NSDL)
+    service_ids: [track_status]
+  - url: https://www.pan.utiitsl.com/
+    title: UTIITSL PAN services
+    portal: UTIITSL
+    service_ids: [new_pan_physical, pan_correction, pan_reprint, epan_download, track_status]
+  - url: https://www.incometax.gov.in/iec/foportal/contact-us
+    title: Contact us – Income Tax helplines (e-filing, Protean PAN)
+    portal: Income Tax Department
+    service_ids: []

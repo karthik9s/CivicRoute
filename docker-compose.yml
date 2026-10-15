@@ -1,0 +1,36 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: civicroute-db
+    restart: unless-stopped   # comes back automatically whenever Docker Desktop starts
+    environment:
+      POSTGRES_USER: civicroute
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-civicroute}   # set a strong one in a root .env file
+      POSTGRES_DB: civicroute
+    ports:
+      - "127.0.0.1:5433:5432"   # localhost only - never exposed to the network
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U civicroute"]
+      interval: 5s
+      retries: 10
+
+  # Full app in a container (optional):  docker compose --profile app up -d --build
+  app:
+    profiles: ["app"]
+    build: .
+    container_name: civicroute-app
+    restart: unless-stopped
+    env_file: backend/.env            # API keys stay outside the image
+    environment:
+      DATABASE_URL: postgresql://civicroute:${POSTGRES_PASSWORD:-civicroute}@db:5432/civicroute
+      VECTOR_STORE: pgvector
+    ports:
+      - "127.0.0.1:8000:8000"         # put a TLS reverse proxy in front before exposing publicly
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
