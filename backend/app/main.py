@@ -5,16 +5,16 @@ Aadhaar numbers are rejected outright. Run with:  uvicorn app.main:app --reload
 """
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
+import threading
 from contextlib import asynccontextmanager
 
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
@@ -33,10 +33,23 @@ from .store import get_store
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 for _noisy in ("httpx", "huggingface_hub", "sentence_transformers"):
     logging.getLogger(_noisy).setLevel(logging.WARNING)
+# Warm-up runs in the background so the port opens at once: a waking server shows the page and
+# catalog straight away, and only chat/intent wait for the model (seconds on a normal CPU).
+_ready = threading.Event()
+_warming = False  # stays False under TestClient without lifespan, so tests never wait
+
+
 @asynccontextmanager
 async def lifespan(_app):
-    await asyncio.to_thread(_warmup)  # load model + index before serving; never blocks the event loop
+    global _warming
+    _warming = True
+    threading.Thread(target=_warmup, name="warmup", daemon=True).start()
     yield
+
+
+def _wait_ready() -> None:
+    if _warming and not _ready.wait(timeout=150):
+        raise HTTPException(503, "The help desk is still starting up. Please try again in a minute.")
 
 
 app = FastAPI(title="CivicRoute AI – PAN Co-pilot", version="1.0.0", docs_url=None, redoc_url=None, openapi_url=None,
@@ -98,6 +111,8 @@ def _reject_sensitive(values: dict) -> None:
 
 @app.api_route("/api/health", methods=["GET", "HEAD"])  # HEAD for uptime monitors
 def health():
+    if _warming and not _ready.is_set():  # 503 until warm: during a redeploy Render keeps the old version serving
+        return JSONResponse({"status": "starting"}, status_code=503)
     store = get_store()
     if settings.public_mode:  # don't advertise providers/models on a public site
         return {"status": "ok", "chunks": store.count()}
@@ -188,6 +203,7 @@ def service(service_id: str, lang: str = "en"):
 
 @app.post("/api/intent")
 def intent(body: IntentIn, lang: str = "en"):
+    _wait_ready()
     text, _ = redact(body.text)
     lang = _lang(lang)
     results = detect_intent(text)
@@ -198,6 +214,7 @@ def intent(body: IntentIn, lang: str = "en"):
 
 @app.post("/api/chat")
 def chat(body: ChatIn):
+    _wait_ready()
     if body.service_id and not get_service(body.service_id):
         raise HTTPException(404, "Unknown service")
     return answer(body.question, body.service_id, body.lang, [t.model_dump() for t in body.history])
@@ -301,3 +318,6 @@ def _warmup() -> None:
         get_llm()  # import the provider SDK now so the first chat isn't slow
     except Exception as exc:  # never block startup
         logging.getLogger(__name__).warning("Warm-up failed: %s", exc)
+    finally:
+        _ready.set()
+        logging.getLogger(__name__).info("Warm-up complete - ready for chat")

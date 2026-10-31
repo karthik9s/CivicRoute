@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Icon, { isFree, shortFee, tone } from '../components/Icon.jsx'
 import { t as tr } from '../lib/i18n.js'
 
@@ -169,6 +169,16 @@ export function Message({ m, same, act, lang = 'en' }) {
   return <div className={`m ${me ? 'me' : 'bot'} ${same ? 'same' : ''}`}>{body}</div>
 }
 
-export function Typing() {
-  return <div className="m bot"><div className="b"><span className="typing"><i /><i /><i /></span></div></div>
+export function Typing({ lang }) {
+  // After a few seconds, explain the wait (free hosting sleeps when idle and takes a while to wake).
+  const [slow, setSlow] = useState(false)
+  useEffect(() => { const id = setTimeout(() => setSlow(true), 5000); return () => clearTimeout(id) }, [])
+  return (
+    <div className="m bot" role="status" aria-live="polite">
+      <div className="b">
+        <span className="typing"><i /><i /><i /></span>
+        {slow && <div className="slow-hint">{tr(lang, 'slow_hint')}</div>}
+      </div>
+    </div>
+  )
 }

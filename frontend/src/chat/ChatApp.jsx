@@ -394,7 +394,7 @@ export default function ChatApp({ lang, command, header, support }) {
             <Message key={m.id} m={m} same={i > 0 && msgs[i - 1].from === m.from && !msgs[i - 1].kind && !m.kind}
               lang={lang} act={{ steps: (s) => { me(L.steps); showSteps(s) }, prepare: startForm, ask: askAbout }} />
           ))}
-          {typing && <Typing />}
+          {typing && <Typing lang={lang} />}
           {!typing && f?.type === 'multiselect' && (
             <div className="qr">
               {f.options.map((o) => (

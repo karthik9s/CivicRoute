@@ -122,3 +122,26 @@ def test_hsts_only_over_https_and_head_supported():
     secure = TestClient(app, base_url="https://testserver")
     assert secure.get("/api/health").headers["strict-transport-security"].startswith("max-age=31536000")
     assert plain.head("/api/health").status_code == 200
+
+
+def test_catalog_cacheable_but_answers_not():
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    c = TestClient(app)
+    assert c.get("/api/services").headers["cache-control"] == "public, max-age=300"
+    assert c.get("/api/support").headers["cache-control"] == "public, max-age=300"
+    assert c.post("/api/chat", json={"question": "PAN reprint fee"}).headers["cache-control"] == "no-store"
+    assert c.get("/api/services/nope").headers["cache-control"] == "no-store"  # errors are never cached
+
+
+def test_startup_does_not_block_serving():
+    """With the lifespan running, the port opens before warm-up finishes and chat waits for it."""
+    from fastapi.testclient import TestClient
+    from app import main
+
+    with TestClient(main.app) as c:
+        assert c.get("/api/services").status_code == 200
+        r = c.post("/api/chat", json={"question": "How do I link PAN with Aadhaar?"})
+        assert r.status_code == 200 and main._ready.is_set()
+        assert c.get("/api/health").status_code == 200

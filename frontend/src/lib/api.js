@@ -1,11 +1,25 @@
 const BASE = import.meta.env.VITE_API_BASE || ''
 
+const WAKING = new Set([502, 503, 504]) // the host answers these while a sleeping server starts
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
 async function req(path, opts = {}) {
-  const res = await fetch(BASE + path, {
-    headers: { 'Content-Type': 'application/json' },
-    ...opts,
-    body: opts.body ? JSON.stringify(opts.body) : undefined,
-  })
+  // Reads are safe to repeat, so retry them while the server wakes up (about 15 s in total).
+  const tries = opts.method && opts.method !== 'GET' ? 1 : 4
+  let res
+  for (let i = 0; i < tries; i++) {
+    try {
+      res = await fetch(BASE + path, {
+        headers: { 'Content-Type': 'application/json' },
+        ...opts,
+        body: opts.body ? JSON.stringify(opts.body) : undefined,
+      })
+      if (!WAKING.has(res.status) || i === tries - 1) break
+    } catch (err) {
+      if (i === tries - 1) throw err
+    }
+    await sleep(2000 * 2 ** i)
+  }
   if (!res.ok) {
     let msg = `Request failed (${res.status})`
     try { msg = (await res.json()).detail || msg } catch { /* ignore */ }

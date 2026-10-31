@@ -30,7 +30,10 @@ Security headers, the content-security policy, input limits, Aadhaar rejection a
 
 ## Good to know
 
-- **Sleeping:** free services sleep after 15 minutes without visitors. The next visitor waits about 2 minutes while it wakes (the free CPU is small), and then answers take about 2 seconds. Free instances get 750 hours a month, enough for one service running all the time.
+- **Sleeping:** free services sleep after 15 minutes without visitors, and waking takes about 2 minutes on the free CPU. What keeps visitors from waiting:
+  - **Keep-awake ping:** `.github/workflows/keepalive.yml` checks the site every 10 minutes, so it normally never sleeps. One service running all month uses about 744 of the 750 free hours. A second free service on the same account would run out of hours, so pause the ping first. To use another URL, set the repo variable `SITE_URL`.
+  - **Backup monitor (recommended, free):** GitHub sometimes delays scheduled runs. Create a monitor at https://uptimerobot.com: **HTTP(s)**, URL `<your site>/api/health`, interval **5 minutes**. It also emails you if the site goes down.
+  - If it does sleep, the page and catalog appear as soon as the server opens, and the chat explains the wait while the AI model loads.
 - **Slow CPU:** free instances get 0.1 CPU. Search still takes about a second, and the AI answer itself is produced on Groq's servers. A paid instance ($7/month at the time of writing) starts in seconds and never sleeps.
 - **Updating content:** edit `backend/data/services.json`, run `python -m ingest.translate` locally (for Hindi and Telugu), commit and push. Each deploy also re-crawls the official pages.
 - **Rollback:** in Render, open the service → **Events**, choose an earlier deploy → **Rollback**.

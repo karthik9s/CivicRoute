@@ -68,6 +68,9 @@ def contains_aadhaar(value: str) -> bool:
     return bool(AADHAAR_RE.search(value) or VID_RE.search(value))
 
 
+PUBLIC_API = ("/api/meta", "/api/problems", "/api/flow/", "/api/services", "/api/updates", "/api/support")
+
+
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
@@ -76,7 +79,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         if request.url.scheme == "https":  # behind the host's TLS proxy (--proxy-headers); never on local http
             response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
         path = request.url.path
-        if path.startswith("/api/"):
+        if request.method in ("GET", "HEAD") and path.startswith(PUBLIC_API) and response.status_code == 200:
+            # Catalog data (no personal details): let browsers reuse it for 5 minutes so pages switch instantly
+            response.headers["Cache-Control"] = "public, max-age=300"
+        elif path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store"  # answers may echo personal details
         elif path.startswith("/assets/"):
             response.headers["Cache-Control"] = "public, max-age=31536000, immutable"  # file names are content-hashed
