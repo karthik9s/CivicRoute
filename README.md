@@ -47,7 +47,7 @@ Double-click **`start.bat`** (or run it from any terminal). Stop with Ctrl+C, or
 ### One-time setup
 
 1. **Python 3.11+** and **Node 20+** installed.
-2. Backend packages: `cd backend` then `python -m pip install -r requirements.lock`
+2. Backend packages: `cd backend` then `python -m pip install -r requirements-lock.txt`
 3. AI key (optional, free): get a key at https://console.groq.com/keys and put it in `backend/.env`:
    ```
    LLM_PROVIDER=groq
@@ -93,7 +93,7 @@ Editing content: change `backend/data/services.json` (English is authoritative),
 | `cd backend` then `python -m pytest` | 44 tests: validators, intent routing, API, localization (facts unchanged across languages), security controls (headers, rate limit, size limit, Aadhaar rejection, redaction, link allow-list, crawler allow-list) |
 | `cd frontend` then `npm test` | Browser-side Aadhaar checksum, fee labels, **translation completeness** (every label in all 3 languages) |
 | `cd backend` then `python -m eval.run_eval` | 32-question golden set in EN/HI/TE: intent accuracy, retrieval hit rate, required facts, citations |
-| `python -m pip_audit -r backend/requirements.lock` / `npm audit` | Dependency vulnerabilities (both currently clean) |
+| `python -m pip_audit -r backend/requirements-lock.txt` / `npm audit` | Dependency vulnerabilities (both currently clean) |
 
 CI (`.github/workflows/ci.yml`) runs the backend tests, the frontend tests and build, and both audits on every push, plus a weekly audit.
 
@@ -121,7 +121,8 @@ start.bat / start.ps1 / stop.bat · Dockerfile · docker-compose.yml · render.y
 
 ## Maintenance
 
-- **Upgrading Python packages:** update `requirements.txt` ranges, install, run the tests, then regenerate `requirements.lock` with the exact installed versions and run `pip-audit`.
+- **Dependency updates:** Dependabot opens a pull request every Monday (minor/patch updates grouped) and immediately for security fixes. CI tests each one; merge when green and Render deploys it.
+- **Upgrading Python packages by hand:** update `requirements.txt` ranges, install, run the tests, then regenerate `requirements-lock.txt` with the exact installed versions and run `pip-audit`.
 - **Groq retires models regularly:** the app switches to another available model automatically. Set `GROQ_MODEL` in `.env` to make it permanent.
 - **Before hosting publicly**, see the "Accepted risks" table in [SECURITY.md](SECURITY.md): TLS reverse proxy, a shared rate limiter, a strong DB password, and a privacy notice for the AI provider.
 

@@ -16,7 +16,7 @@ if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
 python -c "import fastapi, uvicorn, onnxruntime, sentencepiece, psycopg, openai" 2>$null
 if ($LASTEXITCODE -ne 0) {
     Step "Installing Python packages (one-time)..." Yellow
-    python -m pip install -r (Join-Path $backend "requirements.txt")
+    python -m pip install -r (Join-Path $backend "requirements-lock.txt")
     if ($LASTEXITCODE -ne 0) { Fail "pip install failed - see the messages above." }
 }
 if (-not (Test-Path (Join-Path $root "frontend\dist\index.html"))) {

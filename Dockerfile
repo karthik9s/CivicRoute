@@ -15,9 +15,9 @@ RUN npm test && npm run build
 FROM python:3.13-slim
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 HF_HOME=/models PIP_NO_CACHE_DIR=1
 WORKDIR /app
-COPY backend/requirements.lock ./
+COPY backend/requirements-lock.txt ./
 # No PyTorch: embeddings run on ONNX Runtime (int8), so the app fits in 512 MB of RAM
-RUN pip install -r requirements.lock
+RUN pip install -r requirements-lock.txt
 
 COPY backend/ ./backend/
 COPY --from=web /web/dist ./frontend/dist

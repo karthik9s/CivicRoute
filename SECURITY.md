@@ -70,12 +70,12 @@ CivicRoute helps citizens with PAN services, so it handles identity data and mus
 ### Dependencies
 | Check | Result (2026-10-14) |
 |---|---|
-| `pip-audit -r backend/requirements.lock` | No known vulnerabilities (2026-10-15) |
+| `pip-audit -r backend/requirements-lock.txt` | No known vulnerabilities (2026-10-15) |
 | `npm audit` (frontend) | **0 vulnerabilities** after upgrading Vite 5.4.11 → 7.3.6 (fixed GHSA-4w7w-66w2-5vf9, GHSA-fx2h-pf6j-xcff, GHSA-v6wh-96g9-6wx3, which were dev-server path-traversal / hash-disclosure issues) |
 
 Re-run both before every release:
 ```bash
-python -m pip_audit -r backend/requirements.txt
+python -m pip_audit -r backend/requirements-lock.txt
 cd frontend && npm audit
 ```
 
@@ -87,11 +87,11 @@ These are acceptable for a local or demo deployment and **must** be addressed be
 |---|---|---|
 | Rate limiter is in-memory and per-process; uses the socket IP | Single local process | Use Redis-backed limits; read the client IP from a trusted reverse proxy only |
 | No HTTPS locally | Runs on localhost; online, the host (Render) terminates TLS and the app sends HSTS | — |
-| ~~Unpinned Python versions~~ **Done:** `backend/requirements.lock` pins exact versions; CI audits weekly | — | Enable Dependabot for automatic upgrade PRs |
+| ~~Unpinned Python versions~~ **Done:** `backend/requirements-lock.txt` pins exact versions; CI audits weekly; Dependabot (`.github/dependabot.yml`) opens upgrade and security-fix PRs | — | — |
 | Chat text is sent to a third-party LLM (Groq/Anthropic/xAI) | Identifiers are redacted first | Publish a privacy notice; prefer providers with zero-retention options |
 | `/api/health` reveals provider/model names locally | Useful for local debugging; `PUBLIC_MODE=1` (default in the Docker image) hides them | — |
 | Default DB password `civicroute` | DB is localhost-only | Set `POSTGRES_PASSWORD`; use a managed DB with network rules |
-| `start.ps1` auto-installs packages from PyPI (`requirements.txt`) | Convenience on first run | Use `requirements.lock` / the Docker image in production |
+| `start.ps1` auto-installs packages from PyPI (pinned `requirements-lock.txt`) | Convenience on first run | The Docker image in production |
 | Docker image tag `pgvector/pgvector:pg16` isn't pinned to a digest | Official image | Pin by digest |
 
 ## 5. Reporting

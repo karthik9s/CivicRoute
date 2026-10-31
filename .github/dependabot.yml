@@ -1,0 +1,45 @@
+# Dependabot: opens pull requests to upgrade dependencies. CI runs the tests and both security
+# audits on every PR; Render deploys only after you merge to main and CI passes again.
+# Minor and patch updates are grouped into one PR per ecosystem a week; major versions come
+# separately because they can need code changes. Security fixes arrive as soon as they're published
+# (enable "Dependabot security updates" under Settings -> Code security).
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /backend               # requirements-lock.txt holds the exact versions the app runs with
+    schedule: { interval: weekly, day: monday, time: "06:00", timezone: Asia/Kolkata }
+    open-pull-requests-limit: 5
+    labels: [dependencies, python]
+    groups:
+      python-minor-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+      python-security:
+        applies-to: security-updates
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule: { interval: weekly, day: monday, time: "06:00", timezone: Asia/Kolkata }
+    open-pull-requests-limit: 5
+    labels: [dependencies, javascript]
+    groups:
+      npm-minor-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+      npm-security:
+        applies-to: security-updates
+        patterns: ["*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: monthly }
+    labels: [dependencies, ci]
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: docker          # base images in the Dockerfile (node, python)
+    directory: /
+    schedule: { interval: monthly }
+    labels: [dependencies, docker]
