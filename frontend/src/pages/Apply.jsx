@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Icon from '../components/Icon.jsx'
 import { api } from '../lib/api.js'
 import { t } from '../lib/i18n.js'
-import { checkImage, tracker, validateAadhaar } from '../lib/validate.js'
+import { checkImage, formatAadhaar, tracker, validateAadhaar } from '../lib/validate.js'
 
 const GROUPS = [
   { id: 'applicant', title: 'g_applicant', hint: 'g_applicant_h', icon: 'user-plus',
@@ -12,7 +12,7 @@ const GROUPS = [
   { id: 'documents', title: 'g_docs', hint: 'g_docs_h', icon: 'file',
     fields: ['photo', 'signature', 'proofs'] },
 ]
-const OPTIONAL = new Set(['mother_name', 'address_line2', 'proof_name', 'other_pans', 'photo', 'signature'])
+const OPTIONAL = new Set(['aadhaar_local', 'mother_name', 'address_line2', 'proof_name', 'other_pans', 'photo', 'signature'])
 const LOCAL_ONLY = new Set(['aadhaar_local', 'photo', 'signature'])
 const WIDE = new Set(['change_fields', 'proofs', 'address_line1', 'address_line2', 'photo', 'signature'])
 const STATES = ['Andaman and Nicobar Islands', 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chandigarh', 'Chhattisgarh',
@@ -48,7 +48,7 @@ export default function Apply({ id, lang }) {
     const res = await api.validate(id, serverValues())
     const next = { ...checks }
     ids.forEach((f) => { if (res.fields[f]) next[f] = res.fields[f] })
-    if (ids.includes('aadhaar_local')) next.aadhaar_local = aadhaar ? validateAadhaar(aadhaar) : null
+    if (ids.includes('aadhaar_local')) next.aadhaar_local = aadhaar ? validateAadhaar(aadhaar, lang) : null
     setChecks(next); setCross(res.cross_checks)
     return next
   }
@@ -58,9 +58,18 @@ export default function Apply({ id, lang }) {
     if (group) {
       let res
       try { res = await validate(group.fields) } catch (e) { return setErr(e.message) }
-      const missing = group.fields.filter((f) => !OPTIONAL.has(f) && (f === 'aadhaar_local' ? !(aadhaar && validateAadhaar(aadhaar).ok)
-        : (!values[f] || (Array.isArray(values[f]) && !values[f].length) || (res[f] && !res[f].ok))))
-      if (missing.length) return setErr(`${t(lang, 'fix_fields')} ${missing.map((f) => fieldsById[f]?.label || f).join(', ')}`)
+      // Aadhaar is optional, but if it was typed it must be valid (a checksum failure is always a typo).
+      const missing = group.fields.filter((f) => (f === 'aadhaar_local' ? Boolean(aadhaar) && !validateAadhaar(aadhaar, lang).ok
+        : !OPTIONAL.has(f) && (!values[f] || (Array.isArray(values[f]) && !values[f].length) || (res[f] && !res[f].ok))))
+      if (missing.length) {
+        setErr(`${t(lang, 'fix_fields')} ${missing.map((f) => fieldsById[f]?.label || f).join(', ')}`)
+        // Take the user to the first field that needs attention (on a phone it is often off-screen).
+        requestAnimationFrame(() => {
+          const el = document.getElementById(`f-${missing[0]}`)
+          if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.focus({ preventScroll: true }) }
+        })
+        return
+      }
     }
     if (pages[step + 1]?.id === 'summary') {
       try { setSheet(await api.handoff(id, serverValues(), lang)) } catch (e) { return setErr(e.message) }
@@ -94,8 +103,13 @@ export default function Apply({ id, lang }) {
               {group.fields.map((fid) => (
                 <Field key={fid} lang={lang} f={fieldsById[fid]} wide={WIDE.has(fid)} optional={OPTIONAL.has(fid)} check={checks[fid]} file={files[fid]}
                   value={fid === 'aadhaar_local' ? aadhaar : values[fid]} hints={svc.change_proof_hints}
-                  onChange={(v) => (fid === 'aadhaar_local' ? setAadhaar(v) : set(fid, v))}
-                  onBlur={() => (fid === 'aadhaar_local' ? setChecks((c) => ({ ...c, aadhaar_local: aadhaar ? validateAadhaar(aadhaar) : null })) : values[fid] && validate([fid]).catch(() => {}))}
+                  onChange={(v) => {
+                    if (fid !== 'aadhaar_local') return set(fid, v)
+                    const a = formatAadhaar(v)
+                    setAadhaar(a)  // check as soon as all 12 digits are in; until then only on leaving the field
+                    setChecks((c) => ({ ...c, aadhaar_local: a.replace(/\D/g, '').length === 12 ? validateAadhaar(a, lang) : null }))
+                  }}
+                  onBlur={() => (fid === 'aadhaar_local' ? setChecks((c) => ({ ...c, aadhaar_local: aadhaar ? validateAadhaar(aadhaar, lang) : null })) : values[fid] && validate([fid]).catch(() => {}))}
                   onFile={(file) => onFile(fid, file)} />
               ))}
             </div>
@@ -178,9 +192,16 @@ export default function Apply({ id, lang }) {
   )
 }
 
+const LOCALE = { en: 'en-IN', hi: 'hi-IN', te: 'te-IN' }
+const dateInWords = (iso, lang) => {
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(iso || '') ? new Date(`${iso}T00:00:00`) : null
+  return d && !isNaN(d) ? d.toLocaleDateString(LOCALE[lang] || 'en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : ''
+}
+
 function Field({ f, wide, optional, value, check, file, onChange, onBlur, onFile, hints, lang }) {
   const fid = `f-${f.id}`
   const bad = check && !check.ok
+  const [show, setShow] = useState(false)  // Aadhaar: masked by default, "Show" to spot typos
   let input
   if (f.type === 'select' || f.type === 'state') {
     input = <select id={fid} value={value || ''} onChange={(e) => onChange(e.target.value)} onBlur={onBlur}>
@@ -197,6 +218,15 @@ function Field({ f, wide, optional, value, check, file, onChange, onBlur, onFile
         {file.ok ? <p className="msg info"><Icon name="check" size={14} /> Meets the specification ({file.kb} KB, {file.dims}px)</p>
           : file.issues.map((x, i) => <p key={i} className="msg error"><Icon name="x" size={14} /> {x}</p>)}</div>}
     </div>
+  } else if (f.type === 'aadhaar') {
+    input = <div className="reveal">
+      <input id={fid} value={value || ''} onBlur={onBlur} placeholder="XXXX XXXX XXXX" type={show ? 'text' : 'password'}
+        inputMode="numeric" autoComplete="off" spellCheck={false} maxLength={14} aria-describedby={`${fid}-help`}
+        onChange={(e) => onChange(e.target.value)} />
+      <button type="button" className="reveal-btn" aria-pressed={show} aria-controls={fid} onClick={() => setShow((x) => !x)}>
+        <Icon name={show ? 'lock' : 'eye'} size={16} /> {t(lang, show ? 'hide_digits' : 'show_digits')}
+      </button>
+    </div>
   } else {
     input = <input id={fid} value={value || ''} onBlur={onBlur} placeholder={f.placeholder}
       type={f.type === 'date' ? 'date' : f.type === 'aadhaar' ? 'password' : f.type === 'tel' ? 'tel' : f.type === 'email' ? 'email' : 'text'}
@@ -207,7 +237,8 @@ function Field({ f, wide, optional, value, check, file, onChange, onBlur, onFile
     <div className={`ff ${wide ? 'full' : ''} ${bad ? 'bad' : ''}`}>
       <label htmlFor={fid}>{f.label}{!optional && <span className="req"> *</span>}</label>
       {input}
-      {f.help && <p className="help">{f.help}</p>}
+      {f.help && <p className="help" id={`${fid}-help`}>{f.help}{f.type === 'aadhaar' && <> {t(lang, 'aadhaar_optional')}</>}</p>}
+      {f.type === 'date' && dateInWords(value, lang) && <p className="help">{t(lang, 'dob_reads')} <strong>{dateInWords(value, lang)}</strong></p>}
       {f.id === 'change_fields' && (value || []).filter((c) => hints?.[c]).map((c) => <p key={c} className="help">Proof for {c}: {hints[c]}</p>)}
       {check?.message && check.message !== 'OK' && (
         <p className={`msg ${check.ok ? check.level : 'error'}`}><Icon name={check.ok ? (check.level === 'warning' ? 'alert' : 'check') : 'x'} size={14} /> {check.message}</p>

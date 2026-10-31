@@ -130,6 +130,8 @@
   .header .wrap { display: grid; grid-template-columns: 1fr auto; align-items: center; }
   .header .brand { min-width: 0; }
   .wordmark small { display: none; }
+  .hd-launch { padding: 10px; font-size: 0; gap: 0; right: 16px; bottom: 16px; }  /* round icon, like on phones */
+  .hd-launch .av { width: 40px; height: 40px; }
   .hsearch { grid-column: 1 / -1; }
   .hbtns .btn { padding: 8px 10px; }
   .hero h1 { font-size: 1.55rem; }
@@ -149,3 +151,25 @@
   .hd-launch { padding: 10px; font-size: 0; gap: 0; right: 14px; bottom: 14px; }
   .hd-launch .av { width: 40px; height: 40px; }
 }
+
+/* Aadhaar field: masked input with a Show/Hide button to spot typos */
+.reveal { display: flex; gap: 8px; align-items: stretch; }
+.reveal input { flex: 1; min-width: 0; letter-spacing: .06em; font-variant-numeric: tabular-nums; }
+.reveal-btn { display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 1.5px solid var(--line-2); border-radius: var(--r);
+  background: var(--surface); color: var(--navy); font-weight: 600; cursor: pointer; white-space: nowrap; }
+.reveal-btn:hover { border-color: var(--navy); }
+.reveal-btn:focus-visible { outline: 3px solid var(--focus, #ffbf47); outline-offset: 1px; }
+:root[data-theme="dark"] .reveal-btn { color: #dbe4ff; }
+
+/* Tablet widths: give the header search its own row instead of squeezing it to a few letters */
+@media (min-width: 681px) and (max-width: 1080px) {
+  .header .wrap { flex-wrap: wrap; row-gap: 10px; }
+  .hsearch { order: 3; flex-basis: 100%; max-width: none; margin-left: 0; }
+  .hbtns { margin-left: auto; }
+  .wordmark small { display: none; }
+  .hd-launch { padding: 10px; font-size: 0; gap: 0; right: 16px; bottom: 16px; }  /* round icon, like on phones */
+  .hd-launch .av { width: 40px; height: 40px; }
+}
+
+/* Leave room so the floating assistant button never hides the last lines of the page */
+.footer { padding-bottom: 76px; }

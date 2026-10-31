@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon.jsx'
 import { api } from '../lib/api.js'
-import { checkImage, tracker, validateAadhaar } from '../lib/validate.js'
+import { checkImage, formatAadhaar, tracker, validateAadhaar } from '../lib/validate.js'
 import { Message, Typing } from './Messages.jsx'
 
-const OPTIONAL = new Set(['mother_name', 'address_line2', 'proof_name', 'other_pans', 'photo', 'signature'])
+const OPTIONAL = new Set(['aadhaar_local', 'mother_name', 'address_line2', 'proof_name', 'other_pans', 'photo', 'signature'])
 const LOCAL_ONLY = new Set(['aadhaar_local', 'photo', 'signature'])
 const STATES = ['Andaman and Nicobar Islands', 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chandigarh', 'Chhattisgarh',
   'Dadra and Nagar Haveli and Daman and Diu', 'Delhi', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jammu and Kashmir', 'Jharkhand',
@@ -21,6 +21,10 @@ const TXT = {
     askPrompt: (t) => `Sure — ask me anything about “${t}”. I'll answer from official sources.`,
     formIntro: (t) => `Great, let's get your details ready for “${t}”. I'll check each one so the application doesn't get rejected.`,
     formPrivacy: '🔒 Nothing you type is saved. Your Aadhaar is checked on this phone only and never sent anywhere.',
+    notGov: 'CivicRoute is not a government website. You apply, sign and pay on the official portal yourself.',
+    youTyped: 'You typed:',
+    formHint: '🔒 Checked instantly · never saved · never sent to the AI',
+    chatHint: "Please don't type your Aadhaar, PAN or OTP in chat.",
     skip: 'Skip', keep: 'Keep it, continue', change: 'Let me change it', done: 'Done',
     useAnyway: 'Use it anyway', another: 'Choose another file',
     checking: 'Checking everything one last time…',
@@ -44,6 +48,10 @@ const TXT = {
     askPrompt: (t) => `ज़रूर — “${t}” के बारे में कुछ भी पूछिए। मैं आधिकारिक स्रोतों से जवाब दूँगा।`,
     formIntro: (t) => `बढ़िया, “${t}” के लिए आपकी जानकारी तैयार करते हैं। मैं हर जानकारी जाँचूँगा ताकि आवेदन अस्वीकार न हो।`,
     formPrivacy: '🔒 आपकी कोई जानकारी सहेजी नहीं जाती। आधार केवल इसी फ़ोन पर जाँचा जाता है।',
+    notGov: 'CivicRoute सरकारी वेबसाइट नहीं है। आप आवेदन, हस्ताक्षर और भुगतान स्वयं आधिकारिक पोर्टल पर करते हैं।',
+    youTyped: 'आपने लिखा:',
+    formHint: '🔒 तुरंत जाँचा जाता है · कहीं सहेजा नहीं जाता · AI को नहीं भेजा जाता',
+    chatHint: 'चैट में आधार, PAN या OTP न लिखें।',
     skip: 'छोड़ें', keep: 'ठीक है, आगे', change: 'बदलना है', done: 'हो गया',
     useAnyway: 'फिर भी इस्तेमाल करें', another: 'दूसरी फ़ाइल चुनें',
     checking: 'आख़िरी बार सब जाँच रहा हूँ…',
@@ -67,6 +75,10 @@ const TXT = {
     askPrompt: (t) => `తప్పకుండా — “${t}” గురించి ఏదైనా అడగండి. అధికారిక మూలాల నుండి సమాధానం ఇస్తాను.`,
     formIntro: (t) => `బాగుంది, “${t}” కోసం మీ వివరాలు సిద్ధం చేద్దాం. దరఖాస్తు తిరస్కరించబడకుండా ప్రతి వివరాన్ని తనిఖీ చేస్తాను.`,
     formPrivacy: '🔒 మీరు టైప్ చేసేది ఏదీ సేవ్ చేయబడదు. మీ ఆధార్ ఈ ఫోన్‌లోనే తనిఖీ చేయబడుతుంది, ఎక్కడికీ పంపబడదు.',
+    notGov: 'CivicRoute ప్రభుత్వ వెబ్‌సైట్ కాదు. దరఖాస్తు, సంతకం, చెల్లింపు మీరే అధికారిక పోర్టల్‌లో చేస్తారు.',
+    youTyped: 'మీరు టైప్ చేసింది:',
+    formHint: '🔒 వెంటనే తనిఖీ · ఎక్కడా సేవ్ చేయబడదు · AIకి పంపబడదు',
+    chatHint: 'చాట్‌లో మీ ఆధార్, PAN లేదా OTP టైప్ చేయవద్దు.',
     skip: 'దాటవేయి', keep: 'సరే, ముందుకు', change: 'మార్చాలి', done: 'అయిపోయింది',
     useAnyway: 'అయినా వాడండి', another: 'వేరే ఫైల్ ఎంచుకోండి',
     checking: 'చివరిసారిగా అన్నీ తనిఖీ చేస్తున్నాను…',
@@ -103,7 +115,16 @@ export default function ChatApp({ lang, command, header, support }) {
   const fileIn = useRef(null)
   const started = useRef(false)
 
-  useEffect(() => { wall.current?.scrollTo({ top: wall.current.scrollHeight, behavior: 'smooth' }) }, [msgs, typing, replies])
+  useEffect(() => {
+    // Follow the conversation, but open a long answer at its first line instead of jumping past it.
+    const w = wall.current
+    if (!w) return
+    const nodes = w.querySelectorAll('.thread > .m')
+    const el = !typing && msgs.at(-1)?.from !== 'me' ? nodes[nodes.length - 1] : null
+    const top = el && el.offsetHeight > w.clientHeight * 0.6
+      ? el.getBoundingClientRect().top - w.getBoundingClientRect().top + w.scrollTop - 12 : w.scrollHeight
+    w.scrollTo({ top, behavior: 'smooth' })
+  }, [msgs, typing, replies])
 
   // ---------------------------------------------------------------- primitives
   const push = (m) => setMsgs((list) => [...list, { id: ++nid, t: now(), from: 'bot', ...m }])
@@ -255,11 +276,12 @@ export default function ChatApp({ lang, command, header, support }) {
     if (!value || (Array.isArray(value) && !value.length)) return
 
     if (f.type === 'aadhaar') {
-      const r = validateAadhaar(value)
+      const r = validateAadhaar(value, lang)
       me(r.ok ? `XXXX XXXX ${value.replace(/\D/g, '').slice(-4)} 🔒` : '•••• •••• ••••', { masked: true })
-      if (!r.ok) return bot({ text: r.message, tone: 'bad' }, 300)
+      // Show the digits back (only on this screen - plain bot notes are never sent to the server) so a typo can be found.
+      if (!r.ok) return bot({ text: r.message, sub: `${L.youTyped} ${formatAadhaar(value)}`, tone: 'bad' }, 300)
       F.aadhaar = value
-      await bot({ text: '✓ Looks valid — it stays on this phone.', tone: 'good' }, 300)
+      await bot({ text: `✓ ${r.message}`, tone: 'good' }, 300)
       return next()
     }
 
@@ -387,9 +409,7 @@ export default function ChatApp({ lang, command, header, support }) {
       <div className="wall" ref={wall}>
         <div className="thread">
           <span className="day">{lang === 'hi' ? 'आज' : lang === 'te' ? 'ఈరోజు' : 'Today'}</span>
-          <div className="sysnote"><Icon name="lock" size={15} /><span>{lang === 'hi'
-            ? 'CivicRoute सरकारी वेबसाइट नहीं है। आप आवेदन, हस्ताक्षर और भुगतान स्वयं आधिकारिक पोर्टल पर करते हैं।'
-            : 'CivicRoute is not a government website. You apply, sign and pay on the official portal yourself.'}</span></div>
+          <div className="sysnote"><Icon name="lock" size={15} /><span>{L.notGov}</span></div>
           {msgs.map((m, i) => (
             <Message key={m.id} m={m} same={i > 0 && msgs[i - 1].from === m.from && !msgs[i - 1].kind && !m.kind}
               lang={lang} act={{ steps: (s) => { me(L.steps); showSteps(s) }, prepare: startForm, ask: askAbout }} />
@@ -424,9 +444,7 @@ export default function ChatApp({ lang, command, header, support }) {
           <Icon name="send" size={20} />
         </button>
       </form>
-      <div className="hint">{f
-        ? (lang === 'hi' ? '🔒 तुरंत जाँचा जाता है · कहीं सहेजा नहीं जाता · AI को नहीं भेजा जाता' : '🔒 Checked instantly · never saved · never sent to the AI')
-        : (lang === 'hi' ? 'चैट में आधार, PAN या OTP न लिखें।' : "Please don't type your Aadhaar, PAN or OTP in chat.")}</div>
+      <div className="hint">{f ? L.formHint : L.chatHint}</div>
     </>
   )
 }

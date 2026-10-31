@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { STRINGS, t } from './i18n.js'
-import { validateAadhaar } from './validate.js'
+import { formatAadhaar, validateAadhaar } from './validate.js'
 import { isFree, shortFee } from '../components/Icon.jsx'
 import { POLICIES } from '../pages/policies.js'
 
@@ -15,6 +15,16 @@ describe('Aadhaar check (runs only in the browser - never sent to the server)', 
     expect(validateAadhaar('234123412347').ok).toBe(false)
     expect(validateAadhaar('23412341234').ok).toBe(false)
     expect(validateAadhaar('123412341234').ok).toBe(false)
+  })
+  it("explains what to do, in the user's language", () => {
+    expect(validateAadhaar('2341 2341 234').message).toBe('11 of 12 digits entered.')
+    expect(validateAadhaar('234123412347').message).toContain('two digits are swapped')
+    expect(validateAadhaar('234123412347', 'te').message).toContain('ఆధార్')
+    expect(validateAadhaar('2341 2341 2346', 'hi').ok).toBe(true)
+  })
+  it('groups digits like the card and ignores other characters', () => {
+    expect(formatAadhaar('2341a23412346999')).toBe('2341 2341 2346')
+    expect(formatAadhaar('23412')).toBe('2341 2')
   })
 })
 
