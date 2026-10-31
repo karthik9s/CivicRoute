@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import Icon from '../components/Icon.jsx'
 import { api } from '../lib/api.js'
 import { t } from '../lib/i18n.js'
-import { checkImage, formatAadhaar, tracker, validateAadhaar } from '../lib/validate.js'
+import { checkImage, editAadhaar, formatAadhaar, tracker, validateAadhaar } from '../lib/validate.js'
 
 const GROUPS = [
   { id: 'applicant', title: 'g_applicant', hint: 'g_applicant_h', icon: 'user-plus',
@@ -202,6 +202,12 @@ function Field({ f, wide, optional, value, check, file, onChange, onBlur, onFile
   const fid = `f-${f.id}`
   const bad = check && !check.ok
   const [show, setShow] = useState(false)  // Aadhaar: masked by default, "Show" to spot typos
+  const inputRef = useRef(null)
+  const caret = useRef(null)  // where the cursor belongs after the Aadhaar digits are regrouped
+  useLayoutEffect(() => {
+    if (caret.current != null && inputRef.current === document.activeElement) inputRef.current.setSelectionRange(caret.current, caret.current)
+    caret.current = null
+  }, [value])
   let input
   if (f.type === 'select' || f.type === 'state') {
     input = <select id={fid} value={value || ''} onChange={(e) => onChange(e.target.value)} onBlur={onBlur}>
@@ -220,9 +226,14 @@ function Field({ f, wide, optional, value, check, file, onChange, onBlur, onFile
     </div>
   } else if (f.type === 'aadhaar') {
     input = <div className="reveal">
-      <input id={fid} value={value || ''} onBlur={onBlur} placeholder="XXXX XXXX XXXX" type={show ? 'text' : 'password'}
+      <input id={fid} ref={inputRef} value={value || ''} onBlur={onBlur} placeholder="XXXX XXXX XXXX" type={show ? 'text' : 'password'}
         inputMode="numeric" autoComplete="off" spellCheck={false} maxLength={14} aria-describedby={`${fid}-help`}
-        onChange={(e) => onChange(e.target.value)} />
+        onChange={(e) => {
+          // Regroup the digits but keep the cursor where the user is editing (fixing a typo mid-number)
+          const r = editAadhaar(value, e.target.value, e.target.selectionStart ?? e.target.value.length, e.nativeEvent.inputType)
+          caret.current = r.caret
+          onChange(r.value)
+        }} />
       <button type="button" className="reveal-btn" aria-pressed={show} aria-controls={fid} onClick={() => setShow((x) => !x)}>
         <Icon name={show ? 'lock' : 'eye'} size={16} /> {t(lang, show ? 'hide_digits' : 'show_digits')}
       </button>

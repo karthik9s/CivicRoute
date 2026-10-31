@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { STRINGS, t } from './i18n.js'
-import { formatAadhaar, validateAadhaar } from './validate.js'
+import { editAadhaar, formatAadhaar, validateAadhaar } from './validate.js'
 import { isFree, shortFee } from '../components/Icon.jsx'
 import { POLICIES } from '../pages/policies.js'
 
@@ -21,6 +21,18 @@ describe('Aadhaar check (runs only in the browser - never sent to the server)', 
     expect(validateAadhaar('234123412347').message).toContain('two digits are swapped')
     expect(validateAadhaar('234123412347', 'te').message).toContain('ఆధార్')
     expect(validateAadhaar('2341 2341 2346', 'hi').ok).toBe(true)
+  })
+  it('keeps the cursor in place when fixing a digit in the middle', () => {
+    // Typo in the 7th digit: delete it (cursor after it) then type the right digit.
+    let r = editAadhaar('9999 4155 7058', '9999 415 7058', 7, 'deleteContentBackward')
+    expect(r).toEqual({ value: '9999 4157 058', caret: 7 })
+    r = editAadhaar(r.value, '9999 4100057 058'.replace('0005', '05'), 8, 'insertText')  // '0' typed at the cursor
+    expect(r.value).toBe('9999 4105 7058')
+    expect(validateAadhaar(r.value).ok).toBe(true)
+  })
+  it('deleting next to a space removes the neighbouring digit', () => {
+    expect(editAadhaar('9999 4105 7058', '99994105 7058', 4, 'deleteContentBackward')).toEqual({ value: '9994 1057 058', caret: 3 })
+    expect(editAadhaar('9999 4105 7058', '9999 4105 7058'.slice(0, 4) + '4105 7058', 4, 'deleteContentForward').value).toBe('9999 1057 058')
   })
   it('groups digits like the card and ignores other characters', () => {
     expect(formatAadhaar('2341a23412346999')).toBe('2341 2341 2346')

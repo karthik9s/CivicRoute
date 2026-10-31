@@ -30,6 +30,30 @@ const AADHAAR_MSG = {
 /** Digits only, at most 12, grouped like the card: "1234 5678 9012". */
 export const formatAadhaar = (value) => (value || '').replace(/\D/g, '').slice(0, 12).replace(/(\d{4})(?=\d)/g, '$1 ')
 
+/**
+ * Apply one edit to the grouped Aadhaar field and keep the cursor where the user is editing.
+ * Without this, regrouping the digits jumps the cursor to the end, so a digit typed while fixing a
+ * typo in the middle lands at the end and scrambles the number.
+ * @param prev   value before the edit ("9999 4155 7058")
+ * @param raw    what the browser put in the input after the edit
+ * @param caret  cursor position in `raw` after the edit
+ * @param inputType  InputEvent.inputType (deleting across a space must still delete a digit)
+ */
+export function editAadhaar(prev, raw, caret, inputType = '') {
+  let digits = raw.replace(/\D/g, '')
+  let before = raw.slice(0, caret).replace(/\D/g, '').length  // digits to the left of the cursor
+  if (digits === (prev || '').replace(/\D/g, '')) {  // only a space was removed
+    if (inputType === 'deleteContentBackward' && before > 0) { digits = digits.slice(0, before - 1) + digits.slice(before); before -= 1 }
+    else if (inputType === 'deleteContentForward') digits = digits.slice(0, before) + digits.slice(before + 1)
+  }
+  digits = digits.slice(0, 12)
+  before = Math.min(before, digits.length)
+  const value = formatAadhaar(digits)
+  let pos = 0
+  for (let n = 0; pos < value.length && n < before; pos++) if (/\d/.test(value[pos])) n++
+  return { value, caret: pos }
+}
+
 export function validateAadhaar(value, lang = 'en') {
   const M = AADHAAR_MSG[lang] || AADHAAR_MSG.en
   const v = (value || '').replace(/\D/g, '')
