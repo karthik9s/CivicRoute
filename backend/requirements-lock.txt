@@ -13,7 +13,7 @@ pgvector==0.5.1
 onnxruntime==1.31.0
 sentencepiece==0.2.2
 huggingface-hub==1.19.0
-anthropic==1.13.0
+anthropic==2.3.0
 google-genai==2.8.0
 openai==2.7.1
 pytest==9.0.3
