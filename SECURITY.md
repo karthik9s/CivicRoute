@@ -42,7 +42,7 @@ CivicRoute helps citizens with PAN services, so it handles identity data and mus
 ### API hardening
 | Control | Status |
 |---|---|
-| Security headers: strict CSP (`default-src 'self'`, `frame-ancestors 'none'`, no inline scripts), `X-Frame-Options: DENY`, `nosniff`, `Permissions-Policy`, `COOP` | tested |
+| Security headers: strict CSP (`default-src 'self'`, `frame-ancestors 'none'`, no inline scripts), `X-Frame-Options: DENY`, `nosniff`, `Permissions-Policy`, `COOP`; `Strict-Transport-Security` (1 year) whenever the request arrived over HTTPS | tested |
 | Request body limit 64 KB (413); `Content-Length` required on writes | tested |
 | Strict input schemas: field counts, value lengths, `service_id` pattern `^[a-z_]+$` | tested |
 | Rate limiting per client: chat 10/min and 200/day (protects the free LLM quota); other POSTs 120/min | tested |
@@ -86,7 +86,7 @@ These are acceptable for a local or demo deployment and **must** be addressed be
 | Risk | Why accepted now | Before going public |
 |---|---|---|
 | Rate limiter is in-memory and per-process; uses the socket IP | Single local process | Use Redis-backed limits; read the client IP from a trusted reverse proxy only |
-| No HTTPS / HSTS | Runs on localhost | Terminate TLS at a reverse proxy (Caddy/Nginx), add `Strict-Transport-Security` |
+| No HTTPS locally | Runs on localhost; online, the host (Render) terminates TLS and the app sends HSTS | — |
 | ~~Unpinned Python versions~~ **Done:** `backend/requirements.lock` pins exact versions; CI audits weekly | — | Enable Dependabot for automatic upgrade PRs |
 | Chat text is sent to a third-party LLM (Groq/Anthropic/xAI) | Identifiers are redacted first | Publish a privacy notice; prefer providers with zero-retention options |
 | `/api/health` reveals provider/model names locally | Useful for local debugging; `PUBLIC_MODE=1` (default in the Docker image) hides them | — |

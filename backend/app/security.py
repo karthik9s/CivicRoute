@@ -73,6 +73,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         for k, v in SECURITY_HEADERS.items():
             response.headers.setdefault(k, v)
+        if request.url.scheme == "https":  # behind the host's TLS proxy (--proxy-headers); never on local http
+            response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
         path = request.url.path
         if path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store"  # answers may echo personal details

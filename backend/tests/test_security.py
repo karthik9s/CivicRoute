@@ -111,3 +111,14 @@ def test_public_mode_hides_internals(monkeypatch):
     monkeypatch.setattr(type(settings), "public_mode", property(lambda self: True), raising=False)
     h = client.get("/api/health").json()
     assert h["status"] == "ok" and "llm" not in h and "embedder" not in h and "store" not in h
+
+
+def test_hsts_only_over_https_and_head_supported():
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    plain = TestClient(app)
+    assert "strict-transport-security" not in plain.get("/api/health").headers
+    secure = TestClient(app, base_url="https://testserver")
+    assert secure.get("/api/health").headers["strict-transport-security"].startswith("max-age=31536000")
+    assert plain.head("/api/health").status_code == 200

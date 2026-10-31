@@ -96,7 +96,7 @@ def _reject_sensitive(values: dict) -> None:
         raise HTTPException(400, "Aadhaar numbers must not be sent to the server; they are checked on your device only.")
 
 
-@app.get("/api/health")
+@app.api_route("/api/health", methods=["GET", "HEAD"])  # HEAD for uptime monitors
 def health():
     store = get_store()
     if settings.public_mode:  # don't advertise providers/models on a public site
@@ -275,7 +275,7 @@ DIST = BACKEND_DIR.parent / "frontend" / "dist"
 if DIST.exists():
     app.mount("/assets", StaticFiles(directory=DIST / "assets"), name="assets")
 
-    @app.get("/{path:path}", include_in_schema=False)
+    @app.api_route("/{path:path}", methods=["GET", "HEAD"], include_in_schema=False)  # HEAD: link checkers
     def spa(path: str):
         f = DIST / path
         if path and f.is_file() and DIST in f.resolve().parents:
