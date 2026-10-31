@@ -279,7 +279,12 @@ export default function ChatApp({ lang, command, header, support }) {
       const r = validateAadhaar(value, lang)
       me(r.ok ? `XXXX XXXX ${value.replace(/\D/g, '').slice(-4)} 🔒` : '•••• •••• ••••', { masked: true })
       // Show the digits back (only on this screen - plain bot notes are never sent to the server) so a typo can be found.
-      if (!r.ok) return bot({ text: r.message, sub: `${L.youTyped} ${formatAadhaar(value)}`, tone: 'bad' }, 300)
+      if (!r.ok && !r.soft) return bot({ text: r.message, sub: `${L.youTyped} ${formatAadhaar(value)}`, tone: 'bad' }, 300)
+      if (r.soft) {  // check digit failed: let the user re-check, or keep it if it matches the card
+        await bot({ text: r.message, sub: `${L.youTyped} ${formatAadhaar(value)}`, tone: 'bad' }, 300)
+        return setReplies([reply(L.keep, () => { me(L.keep); F.aadhaar = value; next() }, 'primary'),
+          reply(L.change, () => { me(L.change); setReplies([]); input.current?.focus() }, 'ghost')])
+      }
       F.aadhaar = value
       await bot({ text: `✓ ${r.message}`, tone: 'good' }, 300)
       return next()

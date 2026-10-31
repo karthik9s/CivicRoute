@@ -10,19 +10,19 @@ const AADHAAR_MSG = {
   en: {
     count: (n) => `${n} of 12 digits entered.`,
     start: 'An Aadhaar number never starts with 0 or 1. Check the first digit.',
-    typo: 'This is not a valid Aadhaar number: one digit is probably wrong or two digits are swapped. Tap "Show" and compare it, 4 digits at a time, with your Aadhaar card, e-Aadhaar or mAadhaar app.',
+    typo: 'This number does not pass the Aadhaar check digit, so one digit probably differs from your card (or two are swapped). Tap "Show" and compare it, 4 digits at a time, with your Aadhaar card, e-Aadhaar or mAadhaar app. If it matches exactly, you can still continue: the official portal checks it against UIDAI’s records.',
     ok: (l4) => `Looks correct (XXXX XXXX ${l4}). It stays on this device.`,
   },
   hi: {
     count: (n) => `12 में से ${n} अंक दर्ज किए गए।`,
     start: 'आधार नंबर कभी 0 या 1 से शुरू नहीं होता। पहला अंक जाँचें।',
-    typo: 'यह मान्य आधार नंबर नहीं है: शायद एक अंक गलत है या दो अंक आपस में बदल गए हैं। "दिखाएँ" दबाएँ और अपने आधार कार्ड, ई-आधार या mAadhaar ऐप से 4-4 अंक मिलाएँ।',
+    typo: 'यह नंबर आधार के चेक-अंक से मेल नहीं खाता, इसलिए शायद एक अंक आपके कार्ड से अलग है (या दो अंक आपस में बदल गए हैं)। "दिखाएँ" दबाएँ और आधार कार्ड, ई-आधार या mAadhaar ऐप से 4-4 अंक मिलाएँ। अगर बिल्कुल मेल खाता है, तो आप आगे बढ़ सकते हैं: आधिकारिक पोर्टल इसे UIDAI के रिकॉर्ड से जाँचता है।',
     ok: (l4) => `सही लगता है (XXXX XXXX ${l4})। यह इसी डिवाइस पर रहता है।`,
   },
   te: {
     count: (n) => `12 అంకెలలో ${n} నమోదు చేశారు.`,
     start: 'ఆధార్ నంబర్ ఎప్పుడూ 0 లేదా 1తో మొదలవదు. మొదటి అంకెను చూడండి.',
-    typo: 'ఇది సరైన ఆధార్ నంబర్ కాదు: బహుశా ఒక అంకె తప్పుగా ఉంది లేదా రెండు అంకెలు అటూ ఇటూ మారాయి. "చూపించు" నొక్కి, మీ ఆధార్ కార్డు, ఇ-ఆధార్ లేదా mAadhaar యాప్‌తో 4-4 అంకెలుగా పోల్చి చూడండి.',
+    typo: 'ఈ నంబర్ ఆధార్ చెక్-అంకెతో సరిపోలడం లేదు, కాబట్టి బహుశా ఒక అంకె మీ కార్డుకు భిన్నంగా ఉంది (లేదా రెండు అంకెలు అటూ ఇటూ మారాయి). "చూపించు" నొక్కి, ఆధార్ కార్డు, ఇ-ఆధార్ లేదా mAadhaar యాప్‌తో 4-4 అంకెలుగా పోల్చండి. సరిగ్గా సరిపోతే మీరు ముందుకు వెళ్లవచ్చు: అధికారిక పోర్టల్ దీన్ని UIDAI రికార్డులతో తనిఖీ చేస్తుంది.',
     ok: (l4) => `సరిగ్గా ఉంది (XXXX XXXX ${l4}). ఇది ఈ పరికరంలోనే ఉంటుంది.`,
   },
 }
@@ -61,7 +61,8 @@ export function validateAadhaar(value, lang = 'en') {
   if (!/^[2-9]/.test(v)) return { ok: false, level: 'error', message: M.start }
   let c = 0
   ;[...v].reverse().forEach((ch, i) => { c = D[c][P[i % 8][+ch]] })
-  if (c !== 0) return { ok: false, level: 'error', message: M.typo }
+  // Check-digit failure almost always means a typo, but we can't see UIDAI's records: warn, don't block.
+  if (c !== 0) return { ok: false, level: 'warning', soft: true, message: M.typo }
   return { ok: true, level: 'info', message: M.ok(v.slice(-4)) }
 }
 

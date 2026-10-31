@@ -58,8 +58,9 @@ export default function Apply({ id, lang }) {
     if (group) {
       let res
       try { res = await validate(group.fields) } catch (e) { return setErr(e.message) }
-      // Aadhaar is optional, but if it was typed it must be valid (a checksum failure is always a typo).
-      const missing = group.fields.filter((f) => (f === 'aadhaar_local' ? Boolean(aadhaar) && !validateAadhaar(aadhaar, lang).ok
+      // Aadhaar is optional. A wrong length blocks; a failed check digit only warns (we can't see UIDAI's records).
+      const aCheck = aadhaar ? validateAadhaar(aadhaar, lang) : null
+      const missing = group.fields.filter((f) => (f === 'aadhaar_local' ? Boolean(aCheck) && !aCheck.ok && !aCheck.soft
         : !OPTIONAL.has(f) && (!values[f] || (Array.isArray(values[f]) && !values[f].length) || (res[f] && !res[f].ok))))
       if (missing.length) {
         setErr(`${t(lang, 'fix_fields')} ${missing.map((f) => fieldsById[f]?.label || f).join(', ')}`)
@@ -200,7 +201,7 @@ const dateInWords = (iso, lang) => {
 
 function Field({ f, wide, optional, value, check, file, onChange, onBlur, onFile, hints, lang }) {
   const fid = `f-${f.id}`
-  const bad = check && !check.ok
+  const bad = check && !check.ok && !check.soft
   const [show, setShow] = useState(false)  // Aadhaar: masked by default, "Show" to spot typos
   const inputRef = useRef(null)
   const caret = useRef(null)  // where the cursor belongs after the Aadhaar digits are regrouped
@@ -252,7 +253,7 @@ function Field({ f, wide, optional, value, check, file, onChange, onBlur, onFile
       {f.type === 'date' && dateInWords(value, lang) && <p className="help">{t(lang, 'dob_reads')} <strong>{dateInWords(value, lang)}</strong></p>}
       {f.id === 'change_fields' && (value || []).filter((c) => hints?.[c]).map((c) => <p key={c} className="help">Proof for {c}: {hints[c]}</p>)}
       {check?.message && check.message !== 'OK' && (
-        <p className={`msg ${check.ok ? check.level : 'error'}`}><Icon name={check.ok ? (check.level === 'warning' ? 'alert' : 'check') : 'x'} size={14} /> {check.message}</p>
+        <p className={`msg ${check.ok || check.soft ? check.level : 'error'}`}><Icon name={check.soft || check.level === 'warning' ? 'alert' : check.ok ? 'check' : 'x'} size={14} /> {check.message}</p>
       )}
     </div>
   )

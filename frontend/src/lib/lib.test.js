@@ -18,7 +18,10 @@ describe('Aadhaar check (runs only in the browser - never sent to the server)', 
   })
   it("explains what to do, in the user's language", () => {
     expect(validateAadhaar('2341 2341 234').message).toBe('11 of 12 digits entered.')
-    expect(validateAadhaar('234123412347').message).toContain('two digits are swapped')
+    const typo = validateAadhaar('234123412347')
+    expect(typo.message).toContain('two are swapped')
+    expect(typo.soft).toBe(true)  // check-digit failure warns but does not block
+    expect(validateAadhaar('2341 2341 234').soft).toBeUndefined()  // wrong length still blocks
     expect(validateAadhaar('234123412347', 'te').message).toContain('ఆధార్')
     expect(validateAadhaar('2341 2341 2346', 'hi').ok).toBe(true)
   })
