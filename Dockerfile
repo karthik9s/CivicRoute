@@ -12,7 +12,7 @@ COPY frontend/ ./
 RUN npm test && npm run build
 
 # ---------- 2. runtime ----------
-FROM python:3.13-slim
+FROM python:3.15-slim
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 HF_HOME=/models PIP_NO_CACHE_DIR=1
 WORKDIR /app
 COPY backend/requirements-lock.txt ./
