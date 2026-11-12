@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -19,7 +20,19 @@ def _load_dotenv() -> None:
             if not line or line.startswith("#") or "=" not in line:
                 continue
             key, value = line.split("=", 1)
-            os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+            os.environ.setdefault(key.strip(), _parse_value(value))
+
+
+def _parse_value(raw: str) -> str:
+    """KEY=value  # comment  ->  value. Quoted values keep everything inside the quotes (a '#' there is literal),
+    as python-dotenv and docker compose do. Without this, .env.example's notes became part of the values."""
+    v = raw.strip()
+    if v[:1] in ('"', "'"):
+        end = v.find(v[0], 1)
+        return v[1:end] if end > 0 else v[1:]
+    if v.startswith("#"):  # KEY=   # note  -> empty
+        return ""
+    return re.split(r"\s+#", v, maxsplit=1)[0].strip()
 
 
 _load_dotenv()
@@ -56,7 +69,6 @@ class Settings:
     # time, so it sets 0: startup on a tiny CPU drops from minutes to seconds.
     sync_on_start: bool = os.getenv("SYNC_ON_START", "1") == "1"
     llm_daily_budget: int = int(os.getenv("LLM_DAILY_BUDGET", "0"))  # 0 = unlimited
-    min_score: float = float(os.getenv("MIN_RETRIEVAL_SCORE", "0.0"))
     cors_origins: list[str] = field(
         default_factory=lambda: os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",")
     )

@@ -10,13 +10,13 @@ export default function Info({ kind, lang, services, updates, support, openHelp 
         <nav className="crumbs"><span><a href="#/">{t(lang, 'home')}</a></span><span>{t(lang, 'updates')}</span></nav>
         <div className="page">
           <div className="page-title"><div><h1>{t(lang, 'updates')}</h1><p>{t(lang, 'updates_s')}. {t(lang, 'last_checked')}: <b>{updates.last_checked || '—'}</b></p></div></div>
-          <table className="gtable">
+          <div className="table-scroll"><table className="gtable">
             <thead><tr><th style={{ width: 110 }}>{t(lang, 'date')}</th><th style={{ width: 110 }}>{t(lang, 'type')}</th><th>{t(lang, 'update')}</th><th style={{ width: 150 }}>{t(lang, 'official_source')}</th></tr></thead>
             <tbody>{updates.updates.map((u, i) => (
               <tr key={i}><td>{u.date}</td><td><b style={{ color: u.auto ? 'var(--red)' : 'var(--saffron)' }}>{u.tag}</b></td><td>{u.title}</td>
                 <td>{u.url.startsWith('http') ? <a href={u.url} target="_blank" rel="noopener noreferrer">{new URL(u.url).hostname} ↗</a> : <a href={u.url}>{t(lang, 'view_service')}</a>}</td></tr>
             ))}</tbody>
-          </table>
+          </table></div>
           <p className="tiny muted" style={{ marginTop: 10 }}>{t(lang, 'auto_rows')}</p>
         </div>
       </div>
@@ -28,12 +28,12 @@ export default function Info({ kind, lang, services, updates, support, openHelp 
         <nav className="crumbs"><span><a href="#/">{t(lang, 'home')}</a></span><span>{t(lang, 'services')}</span></nav>
         <div className="page">
           <div className="page-title"><div><h1>{t(lang, 'services')}</h1><p>{t(lang, 'quick_s')}</p></div></div>
-          <table className="gtable">
+          <div className="table-scroll"><table className="gtable">
             <thead><tr><th>{t(lang, 'sno')}</th><th>{t(lang, 'service')}</th><th>{t(lang, 'description')}</th><th>{t(lang, 'fee')}</th></tr></thead>
             <tbody>{services.map((s, i) => (
               <tr key={s.id}><td>{i + 1}</td><td><a href={`#/service/${s.id}`}><b>{s.title}</b></a></td><td>{s.short}</td><td style={{ whiteSpace: 'nowrap' }}>{shortFee(s.fees, lang)}</td></tr>
             ))}</tbody>
-          </table>
+          </table></div>
         </div>
       </div>
     )

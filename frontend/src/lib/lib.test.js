@@ -11,19 +11,35 @@ describe('Aadhaar check (runs only in the browser - never sent to the server)', 
     expect(r.message).toContain('2346')
     expect(r.message).not.toContain('2341 2341')
   })
-  it('rejects bad checksum, wrong length and numbers starting with 0/1', () => {
-    expect(validateAadhaar('234123412347').ok).toBe(false)
+  it('only the format blocks: wrong length or a number starting with 0/1', () => {
     expect(validateAadhaar('23412341234').ok).toBe(false)
     expect(validateAadhaar('123412341234').ok).toBe(false)
+    expect(validateAadhaar('023412341234').ok).toBe(false)
+  })
+  it('a check-digit mismatch is accepted with a "compare with your card" note, never called wrong', () => {
+    const typo = validateAadhaar('234123412347')
+    expect(typo.ok).toBe(true)
+    expect(typo.soft).toBe(true)
+    expect(typo.checksum).toBe(false)
+    expect(typo.level).toBe('warning')
+    expect(typo.message).toContain('Format is correct')
+    expect(typo.message).toContain('2347')
+    expect(typo.message).not.toMatch(/wrong|invalid|differs/i)
+    expect(validateAadhaar('2341 2341 2346').checksum).toBe(true)
   })
   it("explains what to do, in the user's language", () => {
     expect(validateAadhaar('2341 2341 234').message).toBe('11 of 12 digits entered.')
-    const typo = validateAadhaar('234123412347')
-    expect(typo.message).toContain('two are swapped')
-    expect(typo.soft).toBe(true)  // check-digit failure warns but does not block
     expect(validateAadhaar('2341 2341 234').soft).toBeUndefined()  // wrong length still blocks
     expect(validateAadhaar('234123412347', 'te').message).toContain('ఆధార్')
+    expect(validateAadhaar('234123412347', 'hi').message).toContain('आधार')
     expect(validateAadhaar('2341 2341 2346', 'hi').ok).toBe(true)
+  })
+  it('accepts digits typed on Hindi, Telugu and full-width keyboards', () => {
+    expect(formatAadhaar('२३४१ २३४१ २३४६')).toBe('2341 2341 2346')
+    expect(formatAadhaar('౨౩౪౧౨౩౪౧౨౩౪౬')).toBe('2341 2341 2346')
+    expect(formatAadhaar('２３４１２３４１２３４６')).toBe('2341 2341 2346')
+    expect(validateAadhaar('२३४१२३४१२३४६')).toMatchObject({ ok: true, checksum: true })
+    expect(editAadhaar('2341 2', '2341 2३', 7, 'insertText')).toEqual({ value: '2341 23', caret: 7 })
   })
   it('keeps the cursor in place when fixing a digit in the middle', () => {
     // Typo in the 7th digit: delete it (cursor after it) then type the right digit.

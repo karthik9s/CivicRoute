@@ -1,7 +1,7 @@
 # CivicRoute - single container: React build served by the FastAPI app.
 #   Local:   docker compose --profile app up -d --build      (app + pgvector)
-#   Public:  Hugging Face Spaces (Docker SDK) builds this file directly - see DEPLOY.md
-# Secrets are NOT baked in: pass them at runtime (backend/.env locally, Space secrets on Hugging Face).
+#   Public:  Render builds this file directly from GitHub (render.yaml) - see DEPLOY.md
+# Secrets are NOT baked in: pass them at runtime (backend/.env locally, the Render dashboard in production).
 
 # ---------- 1. build the web UI ----------
 FROM node:24-alpine AS web

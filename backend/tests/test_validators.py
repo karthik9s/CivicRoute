@@ -23,9 +23,6 @@ def test_pan_surname_initial_warning():
 def test_aadhaar_verhoeff():
     assert v.verhoeff_valid("234123412346")  # valid checksum test number
     assert not v.verhoeff_valid("234123412347")
-    assert not v.validate_aadhaar("123412341234").ok  # cannot start with 1
-    r = v.validate_aadhaar("2341 2341 2346")
-    assert r.ok and r.normalized == "XXXX XXXX 2346"
 
 
 def test_names():

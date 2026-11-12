@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon.jsx'
 import { api } from '../lib/api.js'
-import { checkImage, formatAadhaar, tracker, validateAadhaar } from '../lib/validate.js'
+import { checkImage, formatAadhaar, normalizeAck, toAsciiDigits, todayISO, tracker, validateAadhaar } from '../lib/validate.js'
 import { Message, Typing } from './Messages.jsx'
 
 const OPTIONAL = new Set(['aadhaar_local', 'mother_name', 'address_line2', 'proof_name', 'other_pans', 'photo', 'signature'])
@@ -38,6 +38,11 @@ const TXT = {
     supportTopics: ["I paid but the status hasn't changed", 'My application was rejected', 'My PAN card was not delivered', 'e-PAN email not received', 'Name/DOB mismatch with Aadhaar'],
     helplineIntro: 'Here are the official helplines (verified from the Income Tax “Contact us” page). Keep your acknowledgement number ready when you call.',
     stillStuck: 'Still stuck? Call an official helpline',
+    aadhaarTypo: 'The format is correct. Our quick check-digit test did not match, so please compare the digits below once with your Aadhaar card. If they match your card, it is fine: the official portal confirms it with UIDAI.',
+    aadhaarMatches: 'It matches my card', aadhaarRetype: 'Let me re-type it',
+    aadhaarOnly: 'This step only takes the 12 digits of your Aadhaar. It is optional, so tap “Skip” if you’d rather enter it on the official portal. You can ask questions after this form, or tap Cancel to stop.',
+    ackBad: 'That doesn’t look like an acknowledgement or coupon number. Type the 15-digit Protean number or the UTIITSL coupon number (letters and digits only).',
+    langSwitched: 'Switched to English. What can I help with?',
   },
   hi: {
     greet1: 'नमस्ते! 🙏 मैं CivicRoute हूँ, आपका PAN सहायक।',
@@ -65,6 +70,11 @@ const TXT = {
     supportTopics: ['भुगतान किया पर स्थिति नहीं बदली', 'मेरा आवेदन अस्वीकार हुआ', 'मेरा PAN कार्ड नहीं मिला', 'e-PAN ईमेल नहीं मिला', 'आधार से नाम/जन्मतिथि मेल नहीं खाती'],
     helplineIntro: 'ये आधिकारिक हेल्पलाइन हैं (आयकर “Contact us” पेज से सत्यापित)। कॉल करते समय पावती नंबर तैयार रखें।',
     stillStuck: 'अब भी दिक्कत? आधिकारिक हेल्पलाइन पर कॉल करें',
+    aadhaarTypo: 'फ़ॉर्मेट सही है। हमारी चेक-अंक जाँच मेल नहीं खाई, इसलिए नीचे दिखाए अंक एक बार अपने आधार कार्ड से मिला लें। अगर कार्ड से मेल खाते हैं, तो सब ठीक है: आधिकारिक पोर्टल इसे UIDAI से पुष्टि करता है।',
+    aadhaarMatches: 'कार्ड से मेल खाता है', aadhaarRetype: 'दोबारा लिखूँगा',
+    aadhaarOnly: 'इस चरण में केवल आधार के 12 अंक लिखें। यह वैकल्पिक है, इसलिए चाहें तो “छोड़ें” दबाएँ और आधार आधिकारिक पोर्टल पर ही लिखें। सवाल इस फ़ॉर्म के बाद पूछ सकते हैं, या रोकने के लिए Cancel दबाएँ।',
+    ackBad: 'यह पावती या कूपन नंबर जैसा नहीं लगता। 15 अंकों का Protean नंबर या UTIITSL कूपन नंबर लिखें (केवल अक्षर और अंक)।',
+    langSwitched: 'भाषा हिंदी कर दी गई। मैं किसमें मदद करूँ?',
   },
   te: {
     greet1: 'నమస్తే! 🙏 నేను CivicRoute, మీ PAN సహాయకుడిని.',
@@ -92,6 +102,11 @@ const TXT = {
     supportTopics: ['చెల్లించాను కానీ స్థితి మారలేదు', 'నా దరఖాస్తు తిరస్కరించబడింది', 'నా PAN కార్డు రాలేదు', 'e-PAN ఈమెయిల్ రాలేదు', 'ఆధార్‌తో పేరు/పుట్టిన తేదీ సరిపోలడం లేదు'],
     helplineIntro: 'ఇవి అధికారిక హెల్ప్‌లైన్లు (ఆదాయపు పన్ను “Contact us” పేజీ నుండి ధృవీకరించబడ్డాయి). కాల్ చేసేటప్పుడు అక్నాలెడ్జ్‌మెంట్ నంబర్ సిద్ధంగా ఉంచుకోండి.',
     stillStuck: 'ఇంకా సమస్యా? అధికారిక హెల్ప్‌లైన్‌కు కాల్ చేయండి',
+    aadhaarTypo: 'ఫార్మాట్ సరిగ్గా ఉంది. మా చెక్-అంకె పరీక్ష సరిపోలలేదు, కాబట్టి కింద చూపిన అంకెలను ఒకసారి మీ ఆధార్ కార్డుతో పోల్చండి. కార్డుతో సరిపోతే అంతా సరే: అధికారిక పోర్టల్ దీన్ని UIDAIతో నిర్ధారిస్తుంది.',
+    aadhaarMatches: 'నా కార్డుతో సరిపోతుంది', aadhaarRetype: 'మళ్ళీ టైప్ చేస్తాను',
+    aadhaarOnly: 'ఈ దశలో మీ ఆధార్ 12 అంకెలు మాత్రమే టైప్ చేయండి. ఇది ఐచ్ఛికం, కాబట్టి కావాలంటే “దాటవేయి” నొక్కి ఆధార్‌ను అధికారిక పోర్టల్‌లోనే నమోదు చేయండి. ప్రశ్నలు ఈ ఫారం తర్వాత అడగవచ్చు, లేదా ఆపడానికి Cancel నొక్కండి.',
+    ackBad: 'ఇది అక్నాలెడ్జ్‌మెంట్ లేదా కూపన్ నంబర్‌లా లేదు. 15 అంకెల Protean నంబర్ లేదా UTIITSL కూపన్ నంబర్ టైప్ చేయండి (అక్షరాలు, అంకెలు మాత్రమే).',
+    langSwitched: 'భాష తెలుగుకు మార్చబడింది. దేనిలో సహాయం చేయగలను?',
   },
 }
 
@@ -114,13 +129,15 @@ export default function ChatApp({ lang, command, header, support }) {
   const input = useRef(null)
   const fileIn = useRef(null)
   const started = useRef(false)
+  const topic = useRef(null)                            // service the user is asking about, sent with follow-up questions
+  const shownLang = useRef(lang)
 
   useEffect(() => {
     // Follow the conversation, but open a long answer at its first line instead of jumping past it.
     const w = wall.current
     if (!w) return
     const nodes = w.querySelectorAll('.thread > .m')
-    const el = !typing && msgs.at(-1)?.from !== 'me' ? nodes[nodes.length - 1] : null
+    const el = !typing && msgs[msgs.length - 1]?.from !== 'me' ? nodes[nodes.length - 1] : null
     const top = el && el.offsetHeight > w.clientHeight * 0.6
       ? el.getBoundingClientRect().top - w.getBoundingClientRect().top + w.scrollTop - 12 : w.scrollHeight
     w.scrollTo({ top, behavior: 'smooth' })
@@ -160,6 +177,7 @@ export default function ChatApp({ lang, command, header, support }) {
   }
 
   function menuReplies() {
+    topic.current = null
     setReplies([...cache.current.problems.map((p) => reply(loc(p, 'title', lang), () => pickProblem(p))),
       reply(`🛟 ${L.supportMenu}`, supportMenu), reply(`📞 ${L.helplines}`, () => { me(L.helplines); showHelplines() }, 'ghost')])
   }
@@ -185,6 +203,7 @@ export default function ChatApp({ lang, command, header, support }) {
   async function showService(id, intro = L.found) {
     let s
     try { s = await detail(id) } catch (e) { return bot({ text: e.message, tone: 'bad' }) }
+    topic.current = s.id
     await bot([{ text: intro }, { kind: 'service', s }])
     setReplies(serviceReplies(s))
   }
@@ -197,6 +216,7 @@ export default function ChatApp({ lang, command, header, support }) {
   ]
 
   async function supportMenu() {
+    topic.current = null
     me(L.supportMenu)
     await bot({ text: L.supportAsk })
     setReplies([...L.supportTopics.map((topic) => reply(topic, () => freeText(topic, true))),
@@ -214,6 +234,7 @@ export default function ChatApp({ lang, command, header, support }) {
   }
 
   async function askAbout(s) {
+    topic.current = s.id
     me(L.ask)
     await bot({ text: L.askPrompt(s.title) })
     input.current?.focus()
@@ -223,10 +244,11 @@ export default function ChatApp({ lang, command, header, support }) {
     me(q)
     setReplies([])
     setTyping(true)
-    const history = msgs.filter((m) => (m.from === 'me' && !m.masked && !m.kind) || m.kind === 'answer').slice(-8)
+    const history = msgs.filter((m) => (m.from === 'me' && !m.masked && !m.local && !m.kind) || m.kind === 'answer').slice(-8)
       .map((m) => ({ role: m.from === 'me' ? 'user' : 'assistant', content: String(m.text).slice(0, 2000) }))
     try {
-      const r = await api.chat(q, null, lang, history)
+      // Follow-up questions stay about the service the user picked; the server still switches if the question is clearly about another one.
+      const r = await api.chat(q, isSupport ? null : topic.current, lang, history)
       setTyping(false)
       push({ kind: 'answer', text: r.answer, citations: r.citations, privacy: r.privacy_note })
       const top = r.suggested_services?.[0]
@@ -259,12 +281,18 @@ export default function ChatApp({ lang, command, header, support }) {
     setMode({ type: 'field', f })
     setMulti([])
     await bot({ text: f.label, lead: true, sub: f.help }, 380)
+    setReplies(fieldReplies(f))
+    setTimeout(() => input.current?.focus(), 50)
+  }
+
+  // Quick replies for the current question. Shown again after an error, so "Skip" never disappears.
+  function fieldReplies(f) {
     const rs = []
     if (f.type === 'select') f.options.forEach((o) => rs.push(reply(o, () => answer(o))))
     if (OPTIONAL.has(f.id)) rs.push(reply(L.skip, () => { me(L.skip); next() }, 'ghost'))
-    setReplies(rs)
-    setTimeout(() => input.current?.focus(), 50)
+    return rs
   }
+  const retry = (f) => { setReplies(fieldReplies(f)); setTimeout(() => input.current?.focus(), 50) }
 
   function next() { form.current.idx += 1; askField() }
 
@@ -276,14 +304,24 @@ export default function ChatApp({ lang, command, header, support }) {
     if (!value || (Array.isArray(value) && !value.length)) return
 
     if (f.type === 'aadhaar') {
+      const ascii = toAsciiDigits(value)  // ०१२ / ౦౧౨ typed on Indian keyboards are digits, not letters
+      if (/[a-z\u0900-\u0DFF]/i.test(ascii) && !/\d{4}/.test(ascii)) {
+        // A question or a word, not a number: show it as typed and explain, instead of masking it as a bad Aadhaar.
+        me(value, { local: true })  // kept out of the chat history sent to the server
+        await bot({ text: L.aadhaarOnly, tone: 'warn' }, 300)
+        return retry(f)
+      }
       const r = validateAadhaar(value, lang)
-      me(r.ok ? `XXXX XXXX ${value.replace(/\D/g, '').slice(-4)} 🔒` : '•••• •••• ••••', { masked: true })
+      me(r.ok ? `XXXX XXXX ${formatAadhaar(value).slice(-4)} 🔒` : '•••• •••• ••••', { masked: true })
       // Show the digits back (only on this screen - plain bot notes are never sent to the server) so a typo can be found.
-      if (!r.ok && !r.soft) return bot({ text: r.message, sub: `${L.youTyped} ${formatAadhaar(value)}`, tone: 'bad' }, 300)
-      if (r.soft) {  // check digit failed: let the user re-check, or keep it if it matches the card
+      if (!r.ok && !r.soft) {
         await bot({ text: r.message, sub: `${L.youTyped} ${formatAadhaar(value)}`, tone: 'bad' }, 300)
-        return setReplies([reply(L.keep, () => { me(L.keep); F.aadhaar = value; next() }, 'primary'),
-          reply(L.change, () => { me(L.change); setReplies([]); input.current?.focus() }, 'ghost')])
+        return retry(f)
+      }
+      if (r.soft) {  // format is fine, only the check digit didn't match: let the user re-check, or keep it if it matches the card
+        await bot({ text: L.aadhaarTypo, sub: `${L.youTyped} ${formatAadhaar(value)}`, tone: 'warn' }, 300)
+        return setReplies([reply(L.aadhaarMatches, () => { me(L.aadhaarMatches); F.aadhaar = value; next() }, 'primary'),
+          reply(L.aadhaarRetype, () => { me(L.aadhaarRetype); retry(f) }, 'ghost'), ...fieldReplies(f)])
       }
       F.aadhaar = value
       await bot({ text: `✓ ${r.message}`, tone: 'good' }, 300)
@@ -298,12 +336,13 @@ export default function ChatApp({ lang, command, header, support }) {
     const r = res.fields[f.id]
     if (r && !r.ok) {
       delete F.values[f.id]
-      return bot({ text: `⚠️ ${r.message}`, tone: 'bad' }, 350)
+      await bot({ text: `⚠️ ${r.message}`, tone: 'bad' }, 350)
+      return retry(f)
     }
     if (r?.level === 'warning') {
       await bot({ text: r.message, tone: 'warn' }, 350)
       return setReplies([reply(L.keep, () => { me(L.keep); next() }, 'primary'),
-        reply(L.change, () => { me(L.change); delete F.values[f.id]; setReplies([]); input.current?.focus() }, 'ghost')])
+        reply(L.change, () => { me(L.change); delete F.values[f.id]; retry(f) }, 'ghost')])
     }
     if (r?.message && r.message !== 'OK' && r.message.length < 90) await bot({ text: `✓ ${r.message}`, tone: 'good' }, 250)
     next()
@@ -353,7 +392,9 @@ export default function ChatApp({ lang, command, header, support }) {
     if (mode.type === 'field') return answer(v)
     if (mode.type === 'ack') {
       me(v)
-      tracker.add({ service_id: mode.s.id, title: mode.s.title, ack: v.slice(0, 30) })
+      const ackNo = normalizeAck(v)
+      if (!ackNo) return bot({ text: L.ackBad, tone: 'bad' }, 300)
+      tracker.add({ service_id: mode.s.id, title: mode.s.title, ack: ackNo })
       setMode({ type: 'free' })
       await bot({ text: L.ackSaved, tone: 'good' })
       return menuReplies()
@@ -363,6 +404,7 @@ export default function ChatApp({ lang, command, header, support }) {
 
   function reset() {
     form.current = null
+    topic.current = null
     setMode({ type: 'free' })
     setMsgs([]); setReplies([])
     greet()
@@ -370,6 +412,24 @@ export default function ChatApp({ lang, command, header, support }) {
 
   // ---------------------------------------------------------------- lifecycle & external commands
   useEffect(() => { if (!started.current) { started.current = true; greet() } }, []) // eslint-disable-line
+  useEffect(() => {
+    // The site language changed mid-conversation: the buttons on screen were built in the old language, so stop any
+    // half-filled form (its questions are in the old language too) and offer the menu again in the new one.
+    if (shownLang.current === lang) return
+    shownLang.current = lang
+    if (!started.current) return
+    form.current = null
+    setMode({ type: 'free' })
+    ;(async () => {
+      try {
+        const [problems, list] = await Promise.all([api.problems(), api.services(lang)])
+        cache.current.problems = problems
+        cache.current.list = Object.fromEntries(list.map((s) => [s.id, s]))
+      } catch { /* keep the old lists */ }
+      await bot({ text: L.langSwitched })
+      menuReplies()
+    })()
+  }, [lang]) // eslint-disable-line
   useEffect(() => {
     if (!command) return
     if (command.type === 'service') { me(cache.current.list[command.id]?.title || 'Tell me about this service'); showService(command.id) }
@@ -404,6 +464,7 @@ export default function ChatApp({ lang, command, header, support }) {
       <input ref={input} value={text} onChange={(e) => setText(f?.upper ? e.target.value.toUpperCase() : e.target.value)}
         type={f?.type === 'date' ? 'date' : f?.type === 'aadhaar' ? 'password' : f?.type === 'email' ? 'email' : f?.type === 'tel' ? 'tel' : 'text'}
         inputMode={f?.type === 'aadhaar' || f?.type === 'tel' ? 'numeric' : undefined} autoComplete="off" maxLength={f ? 120 : 1500}
+        max={f?.type === 'date' ? todayISO() : undefined} min={f?.type === 'date' ? '1900-01-01' : undefined}
         placeholder={f?.type === 'aadhaar' ? L.aadhaarPh : f ? (f.placeholder || f.label) : L.placeholder} aria-label={f ? f.label : L.placeholder} />
     </>
   }

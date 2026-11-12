@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import Icon from '../components/Icon.jsx'
 import { api } from '../lib/api.js'
 import { t } from '../lib/i18n.js'
-import { checkImage, editAadhaar, formatAadhaar, tracker, validateAadhaar } from '../lib/validate.js'
+import { checkImage, editAadhaar, formatAadhaar, normalizeAck, todayISO, tracker, validateAadhaar } from '../lib/validate.js'
 
 const GROUPS = [
   { id: 'applicant', title: 'g_applicant', hint: 'g_applicant_h', icon: 'user-plus',
@@ -14,6 +14,9 @@ const GROUPS = [
 ]
 const OPTIONAL = new Set(['aadhaar_local', 'mother_name', 'address_line2', 'proof_name', 'other_pans', 'photo', 'signature'])
 const LOCAL_ONLY = new Set(['aadhaar_local', 'photo', 'signature'])
+// Show the cleaned-up value once the server has checked it ("abcpk 1234f" -> "ABCPK1234F"), so what the user sees on
+// the review and summary is exactly what the official portal accepts.
+const NORMALIZE = new Set(['pan', 'mobile', 'email', 'pincode'])
 const WIDE = new Set(['change_fields', 'proofs', 'address_line1', 'address_line2', 'photo', 'signature'])
 const STATES = ['Andaman and Nicobar Islands', 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chandigarh', 'Chhattisgarh',
   'Dadra and Nagar Haveli and Daman and Diu', 'Delhi', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jammu and Kashmir', 'Jharkhand',
@@ -33,6 +36,7 @@ export default function Apply({ id, lang }) {
   const [copied, setCopied] = useState(null)
   const [ack, setAck] = useState('')
   const [saved, setSaved] = useState(false)
+  const [ackErr, setAckErr] = useState('')
 
   useEffect(() => { api.service(id, lang).then(setSvc).catch((e) => setErr(e.message)) }, [id, lang])
   const fieldsById = useMemo(() => Object.fromEntries((svc?.form || []).map((f) => [f.id, f])), [svc])
@@ -42,15 +46,22 @@ export default function Apply({ id, lang }) {
   const group = groups.find((g) => g.id === page?.id)
 
   const serverValues = () => Object.fromEntries(Object.entries(values).filter(([k, v]) => !LOCAL_ONLY.has(k) && v !== '' && v != null && (!Array.isArray(v) || v.length)))
-  const set = (k, v) => setValues((s) => ({ ...s, [k]: v }))
+  const set = (k, v) => {
+    setValues((s) => ({ ...s, [k]: v }))
+    setChecks((c) => (c[k]?.required ? { ...c, [k]: null } : c))  // clear "required" as soon as the user fills it in
+  }
 
   async function validate(ids) {
     const res = await api.validate(id, serverValues())
-    const next = { ...checks }
-    ids.forEach((f) => { if (res.fields[f]) next[f] = res.fields[f] })
-    if (ids.includes('aadhaar_local')) next.aadhaar_local = aadhaar ? validateAadhaar(aadhaar, lang) : null
-    setChecks(next); setCross(res.cross_checks)
-    return next
+    const fresh = {}
+    ids.forEach((f) => { if (res.fields[f]) fresh[f] = res.fields[f] })
+    if (ids.includes('aadhaar_local')) fresh.aadhaar_local = aadhaar ? validateAadhaar(aadhaar, lang) : null
+    setChecks((c) => ({ ...c, ...fresh }))  // functional update: two quick blurs must not overwrite each other
+    setCross(res.cross_checks)
+    const fixes = Object.fromEntries(ids.filter((f) => NORMALIZE.has(f) && fresh[f]?.ok && fresh[f].normalized && fresh[f].normalized !== values[f])
+      .map((f) => [f, fresh[f].normalized]))
+    if (Object.keys(fixes).length) setValues((v) => ({ ...v, ...fixes }))
+    return { ...checks, ...fresh }
   }
 
   async function saveNext() {
@@ -63,6 +74,9 @@ export default function Apply({ id, lang }) {
       const missing = group.fields.filter((f) => (f === 'aadhaar_local' ? Boolean(aCheck) && !aCheck.ok && !aCheck.soft
         : !OPTIONAL.has(f) && (!values[f] || (Array.isArray(values[f]) && !values[f].length) || (res[f] && !res[f].ok))))
       if (missing.length) {
+        // Empty required fields never get a server check, so mark them here: the message says "highlighted".
+        const empty = missing.filter((f) => !res[f] || res[f].ok)
+        setChecks((c) => ({ ...c, ...Object.fromEntries(empty.map((f) => [f, { ok: false, level: 'error', required: true, message: t(lang, 'field_required') }])) }))
         setErr(`${t(lang, 'fix_fields')} ${missing.map((f) => fieldsById[f]?.label || f).join(', ')}`)
         // Take the user to the first field that needs attention (on a phone it is often off-screen).
         requestAnimationFrame(() => {
@@ -110,7 +124,8 @@ export default function Apply({ id, lang }) {
                     setAadhaar(a)  // check as soon as all 12 digits are in; until then only on leaving the field
                     setChecks((c) => ({ ...c, aadhaar_local: a.replace(/\D/g, '').length === 12 ? validateAadhaar(a, lang) : null }))
                   }}
-                  onBlur={() => (fid === 'aadhaar_local' ? setChecks((c) => ({ ...c, aadhaar_local: aadhaar ? validateAadhaar(aadhaar, lang) : null })) : values[fid] && validate([fid]).catch(() => {}))}
+                  onBlur={() => (fid === 'aadhaar_local' ? setChecks((c) => ({ ...c, aadhaar_local: aadhaar ? validateAadhaar(aadhaar, lang) : null }))
+                    : values[fid] && validate(fid === 'full_name' && values.pan ? [fid, 'pan'] : [fid]).catch(() => {}))}
                   onFile={(file) => onFile(fid, file)} />
               ))}
             </div>
@@ -151,11 +166,11 @@ export default function Apply({ id, lang }) {
               </div>
               <div>
                 <h3 style={{ marginBottom: 8 }}>2. {t(lang, 'enter_these')}</h3>
-                <table className="gtable"><thead><tr><th>{t(lang, 'field_official')}</th><th>{t(lang, 'your_entry')}</th><th style={{ width: 90 }} /></tr></thead>
+                <div className="table-scroll"><table className="gtable"><thead><tr><th>{t(lang, 'field_official')}</th><th>{t(lang, 'your_entry')}</th><th style={{ width: 90 }} /></tr></thead>
                   <tbody>{sheet.rows.map((r) => (
                     <tr key={r.field}><td>{r.portal_label}</td><td><b>{r.value}</b></td>
                       <td>{!/yourself|Upload/.test(r.value) && <button className={`copybtn ${copied === r.field ? 'done' : ''}`} onClick={() => copy(r.field, r.value)}>{copied === r.field ? t(lang, 'copied') : t(lang, 'copy')}</button>}</td></tr>
-                  ))}</tbody></table>
+                  ))}</tbody></table></div>
               </div>
               <div className="split">
                 <div><h3 style={{ marginBottom: 8 }}>3. {t(lang, 'h3_keep')}</h3>
@@ -167,10 +182,15 @@ export default function Apply({ id, lang }) {
               <div className="fpanel">
                 <h3><Icon name="list" size={18} /> {t(lang, 'save_ack_t')}</h3>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 10 }} className="ff">
-                  <input value={ack} onChange={(e) => setAck(e.target.value)} placeholder={t(lang, 'ack_ph')} maxLength={30} style={{ flex: '1 1 220px', width: 'auto' }} />
-                  <button className="btn primary" disabled={!ack.trim() || saved} onClick={() => { tracker.add({ service_id: svc.id, title: svc.title, ack: ack.trim() }); setSaved(true) }}>
+                  <input value={ack} onChange={(e) => { setAck(e.target.value); setAckErr('') }} placeholder={t(lang, 'ack_ph')} maxLength={30} style={{ flex: '1 1 220px', width: 'auto' }} />
+                  <button className="btn primary" disabled={!ack.trim() || saved} onClick={() => {
+                    const no = normalizeAck(ack)
+                    if (!no) return setAckErr(t(lang, 'ack_bad'))
+                    tracker.add({ service_id: svc.id, title: svc.title, ack: no }); setAck(no); setSaved(true)
+                  }}>
                     {saved ? t(lang, 'saved') : t(lang, 'save_track')}</button>
                 </div>
+                {ackErr && <p className="msg error" role="alert"><Icon name="x" size={14} /> {ackErr}</p>}
                 <p className="tiny muted" style={{ marginTop: 8 }}>{t(lang, 'browser_only')} → “{t(lang, 'mine')}”</p>
               </div>
               <div className="action-bar" style={{ marginTop: 0 }}>
@@ -184,7 +204,7 @@ export default function Apply({ id, lang }) {
         {err && <p className="notice" style={{ marginTop: 16 }} role="alert"><Icon name="alert" size={18} /> {err}</p>}
         {page.id !== 'summary' && (
           <div className="form-actions">
-            <button className="btn" onClick={() => (step ? setStep(step - 1) : window.history.back())}><Icon name="back" size={16} /> {t(lang, 'back')}</button>
+            <button className="btn" onClick={() => (step ? setStep(step - 1) : (window.location.hash = `#/service/${id}`))}><Icon name="back" size={16} /> {t(lang, 'back')}</button>
             <button className="btn primary lg" onClick={saveNext}>{pages[step + 1]?.id === 'summary' ? t(lang, 'finish') : t(lang, 'next')} <Icon name="arrow-right" size={17} /></button>
           </div>
         )}
@@ -241,6 +261,7 @@ function Field({ f, wide, optional, value, check, file, onChange, onBlur, onFile
     </div>
   } else {
     input = <input id={fid} value={value || ''} onBlur={onBlur} placeholder={f.placeholder}
+      max={f.type === 'date' ? todayISO() : undefined} min={f.type === 'date' ? '1900-01-01' : undefined}
       type={f.type === 'date' ? 'date' : f.type === 'aadhaar' ? 'password' : f.type === 'tel' ? 'tel' : f.type === 'email' ? 'email' : 'text'}
       inputMode={f.type === 'aadhaar' || f.type === 'tel' ? 'numeric' : undefined} autoComplete={f.type === 'aadhaar' ? 'off' : undefined} maxLength={120}
       onChange={(e) => onChange(f.upper ? e.target.value.toUpperCase() : e.target.value)} />

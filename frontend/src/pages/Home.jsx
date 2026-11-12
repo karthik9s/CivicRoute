@@ -13,7 +13,12 @@ const SUPPORT_TOPICS = {
   hi: ['भुगतान हुआ पर अपडेट नहीं', 'आवेदन अस्वीकार हुआ', 'कार्ड नहीं मिला', 'आधिकारिक हेल्पलाइन'],
   te: ['చెల్లించాను కానీ అప్‌డేట్ లేదు', 'దరఖాస్తు తిరస్కరించబడింది', 'కార్డు రాలేదు', 'అధికారిక హెల్ప్‌లైన్'],
 }
-export const OFFICIAL_LINKS = [
+const NO_MATCH = {
+  en: "We couldn't match that to a PAN service. Try describing your PAN problem in other words, pick a service below, or ask the Help Desk.",
+  hi: 'हम इसे किसी PAN सेवा से नहीं जोड़ पाए। अपनी PAN समस्या दूसरे शब्दों में लिखें, नीचे से कोई सेवा चुनें, या सहायता केंद्र से पूछें।',
+  te: 'దీన్ని ఏ PAN సేవతోనూ సరిపోల్చలేకపోయాం. మీ PAN సమస్యను వేరే మాటల్లో రాయండి, కింద ఒక సేవను ఎంచుకోండి, లేదా సహాయ కేంద్రాన్ని అడగండి.',
+}
+const OFFICIAL_LINKS = [
   [{ en: 'Income Tax e-filing portal', hi: 'आयकर ई-फाइलिंग पोर्टल', te: 'ఆదాయపు పన్ను e-ఫైలింగ్ పోర్టల్' }, 'https://www.incometax.gov.in/iec/foportal/'],
   [{ en: 'Instant e-PAN', hi: 'तत्काल e-PAN', te: 'తక్షణ e-PAN' }, 'https://eportal.incometax.gov.in/iec/foservices/#/pre-login/instant-e-pan'],
   [{ en: 'Link Aadhaar with PAN', hi: 'PAN को आधार से लिंक करें', te: 'PAN ను ఆధార్‌తో లింక్ చేయండి' }, 'https://eportal.incometax.gov.in/iec/foservices/#/pre-login/bl-link-aadhaar'],
@@ -23,7 +28,7 @@ export const OFFICIAL_LINKS = [
 ]
 const title = (o, lang, k = 'title') => o[`${k}_${lang}`] || o[k]
 
-export function UpdatesFeed({ lang, updates, height = 300 }) {
+function UpdatesFeed({ lang, updates, height = 300 }) {
   const items = updates.updates
   const row = (u, i, dup) => {
     const d = new Date(u.date || Date.now())
@@ -73,6 +78,9 @@ export default function Home({ lang, services, updates, support, openHelp }) {
     return () => window.removeEventListener('cr-search', onSearch)
   }) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Language switched while a result is on screen: fetch the service names again in the new language.
+  useEffect(() => { if (asked) search(asked) }, [lang]) // eslint-disable-line react-hooks/exhaustive-deps
+
   async function search(text) {
     const query = (text ?? q).trim()
     if (!query) return
@@ -96,7 +104,16 @@ export default function Home({ lang, services, updates, support, openHelp }) {
             </form>
             <div className="try">{t(lang, 'try')} {(POPULAR[lang] || POPULAR.en).map((p) => <button key={p} type="button" onClick={() => search(p)}>{p}</button>)}</div>
             {err && <p className="notice" style={{ marginTop: 14 }}><Icon name="alert" size={18} /> {err}</p>}
-            {top && (
+            {top && top.confidence === 'none' && (
+              <div className="result" role="status">
+                <span className="tiny muted">“{asked}”</span>
+                <p style={{ margin: '6px 0 10px' }}>{NO_MATCH[lang] || NO_MATCH.en}</p>
+                <div className="alt">
+                  <button className="btn sm" type="button" onClick={() => openHelp({ type: 'ask', text: asked })}><Icon name="sparkles" size={14} /> {t(lang, 'ask')}</button>
+                </div>
+              </div>
+            )}
+            {top && top.confidence !== 'none' && (
               <div className="result" role="status">
                 <span className="tiny muted">{t(lang, 'looks')} — “{asked}”</span>
                 <a className="go" href={`#/service/${top.service_id}`}>{top.title} <Icon name="arrow-right" size={20} /></a>

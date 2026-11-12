@@ -19,11 +19,14 @@ STOP = {"i", "my", "me", "a", "an", "the", "to", "for", "of", "is", "in", "on", 
 
 # Signals that override pure similarity (they encode decisions, not just topic).
 RULES = [
-    (re.compile(r"\b(two|2|multiple|double|do)\s+pan\b", re.I), "surrender_duplicate_pan", 0.6),
+    # "do" is Hindi for "two" but also the English verb ("how do PAN cards work"), so it only counts in Hinglish
+    # phrasing ("do pan card hai") or in Devanagari.
+    (re.compile(r"\b(two|2|multiple|double)\s+pan\b|\bdo\s+pan\s*(card|cards|number|numbers)?\s*(hai|hain|he|h|bane|ban gaye)\b|दो\s*(पैन|PAN)", re.I),
+     "surrender_duplicate_pan", 0.6),
     (re.compile(r"\b(inoperative|deactivat|not working|blocked|link(ed|ing)?\s+(with\s+)?aadhaa?r|aadhaa?r\s+link)", re.I), "pan_aadhaar_link", 0.5),
     (re.compile(r"\b(lost|stolen|missing|damaged|torn|kho\s*gaya|duplicate|reprint)\b", re.I), "pan_reprint", 0.35),
     (re.compile(r"\b(e-?pan|pdf|soft\s*copy|download)\b", re.I), "epan_download", 0.3),
-    (re.compile(r"\b(wrong|incorrect|mistake|spell\w*|typo|change[sd]?|update[sd]?|correct(ion)?|galat|marriage|married|surname|shifted|new address)\b", re.I), "pan_correction", 0.45),
+    (re.compile(r"\b(wrong|incorrect|mistake|mismatch\w*|spell\w*|typo|change[sd]?|update[sd]?|correct(ion)?|galat|marriage|married|surname|shifted|new address)\b", re.I), "pan_correction", 0.45),
     (re.compile(r"\b(track|status|where is|kab aayega|not (yet )?(received|delivered)|acknowledg)", re.I), "track_status", 0.35),
     (re.compile(r"\b(minor|child|kid|son|daughter|nri|foreign|company|firm|trust|huf|llp|(1[0-7]|[1-9])\s*(year|yr)s?\s*old)\b", re.I), "new_pan_physical", 0.6),
     (re.compile(r"\b(link|linking|linked)\b", re.I), "pan_aadhaar_link", 0.3),
@@ -32,6 +35,10 @@ RULES = [
     (re.compile(r"\b(new|first|don'?t have|never had|apply|naya|banwana)\b", re.I), "instant_epan", 0.25),
     (re.compile(r"\b(verify|valid|genuine|check pan|forgot)\b", re.I), "verify_pan", 0.3),
 ]
+
+
+# Applicant types that really do need the form-based route, even when another problem is mentioned.
+_SPECIAL_APPLICANT = re.compile(r"\b(minor|nri|foreign|company|firm|trust|huf|llp|(1[0-7]|[1-9])\s*(year|yr)s?\s*old)\b", re.I)
 
 
 def _profile(svc: dict) -> str:
@@ -79,6 +86,10 @@ def detect_intent(text: str, top_n: int = 3) -> list[dict]:
     # "lost" + "change/wrong" => correction wins over reprint (a reprint can't change details)
     if boosts.get("pan_reprint") and boosts.get("pan_correction"):
         boosts["pan_reprint"] -= 0.2
+    # "my son lost his PAN" is about an existing PAN: a family word alone must not outvote the actual problem.
+    existing = ("pan_reprint", "pan_correction", "track_status", "pan_aadhaar_link", "epan_download", "verify_pan")
+    if boosts.get("new_pan_physical") and any(boosts.get(sid) for sid in existing) and not _SPECIAL_APPLICANT.search(text):
+        boosts["new_pan_physical"] -= 0.45
 
     results = []
     for i, sid in enumerate(ids):
@@ -94,6 +105,12 @@ def detect_intent(text: str, top_n: int = 3) -> list[dict]:
         conf = "high" if margin > 0.25 else "medium" if margin > 0.08 else "low"
     else:
         conf = "high"
+    # Nothing PAN-related at all ("what is the weather", "asdfgh"): no rule fired and no service vocabulary matched.
+    # Embedding similarity is rescaled relative to the best match, so it can't tell "off-topic" on its own.
+    # Non-Latin text is exempt: its keywords may be missing while the multilingual embedding still matches well.
+    non_latin = sum(ord(c) > 0x024F for c in text) > len(text) * 0.3
+    if top and not non_latin and not any(boosts.values()) and not any(keyword_score(text, svc) for svc in services.values()):
+        conf = "none"
     for r in top:
         r["confidence"] = conf if r is top[0] else None
     return top

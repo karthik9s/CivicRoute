@@ -57,7 +57,7 @@ export default function Icon({ name, size = 20, className = '', stroke = 2 }) {
 }
 
 // Category colour for each service / problem, shared across pages.
-export const TONES = {
+const TONES = {
   instant_epan: 'c-amber', new_pan_physical: 'c-indigo', pan_correction: 'c-purple', pan_reprint: 'c-blue',
   epan_download: 'c-teal', pan_aadhaar_link: 'c-orange', track_status: 'c-green', verify_pan: 'c-indigo',
   surrender_duplicate_pan: 'c-red',

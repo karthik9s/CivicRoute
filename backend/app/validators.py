@@ -2,8 +2,8 @@
 
 These catch the mistakes that most often get PAN applications rejected *before* the user
 reaches the official portal. Aadhaar is deliberately validated in the browser only (see
-frontend/src/lib/validate.js); the API refuses to receive it. The Python Verhoeff check
-here exists for tests and parity.
+frontend/src/lib/validate.js); the API refuses to receive it. The Verhoeff check below is
+used only to tell a real Aadhaar from a payment reference when redacting chat text (rag.py).
 """
 from __future__ import annotations
 
@@ -73,15 +73,6 @@ def validate_pan(value: str, full_name: str | None = None) -> Result:
 def _surname(name: str) -> str:
     parts = name.strip().split()
     return parts[-1] if parts else ""
-
-
-def validate_aadhaar(value: str) -> Result:
-    v = re.sub(r"\s|-", "", value or "")
-    if not re.fullmatch(r"[2-9]\d{11}", v):
-        return Result(False, "Aadhaar must be 12 digits and cannot start with 0 or 1.")
-    if not verhoeff_valid(v):
-        return Result(False, "This Aadhaar number fails the checksum — check for a typo.")
-    return Result(True, "Looks valid.", "info", "XXXX XXXX " + v[-4:])
 
 
 def _strip_accents(s: str) -> str:
@@ -164,7 +155,7 @@ def validate_email(value: str) -> Result:
 
 
 def validate_pincode(value: str) -> Result:
-    v = (value or "").strip()
+    v = re.sub(r"[\s-]", "", value or "")  # "500 081" is how many people write it
     if not PIN_RE.match(v):
         return Result(False, "PIN code must be 6 digits and can't start with 0.")
     return Result(True, "OK", "info", v)
@@ -184,7 +175,7 @@ def validate_required(value: str, label: str = "This field") -> Result:
 
 
 VALIDATORS = {
-    "pan": lambda v, ctx: validate_pan(v, ctx.get("full_name")),
+    "pan": lambda v, ctx: validate_pan(v, None if _changing_name(ctx) else ctx.get("full_name")),
     "full_name": lambda v, ctx: validate_name(v, "Full name"),
     "name_on_card": lambda v, ctx: validate_name(v, "Name on card"),
     "father_name": lambda v, ctx: validate_name(v, "Father's name"),
@@ -201,6 +192,16 @@ VALIDATORS = {
 
 SENSITIVE_FIELDS = {"aadhaar", "aadhaar_local"}
 
+# Fields whose cleaned-up value (not what was typed) must be shown on the summary sheet, e.g. "abcpk 1234f" -> "ABCPK1234F",
+# "+91 98765 43210" -> "9876543210": the official portal rejects the typed forms.
+NORMALIZE_FIELDS = {"pan", "mobile", "email", "pincode", "ack_number"}
+
+
+def _changing_name(ctx: dict | None) -> bool:
+    """On a name correction the PAN was issued under the OLD surname, so the surname-initial check is a false alarm."""
+    ctx = ctx or {}
+    return ctx.get("service_id") == "pan_correction" and "Name" in (ctx.get("change_fields") or [])
+
 
 def validate_field(field: str, value: str, ctx: dict | None = None) -> Result:
     ctx = ctx or {}
@@ -212,7 +213,7 @@ def validate_field(field: str, value: str, ctx: dict | None = None) -> Result:
     return fn(value, ctx)
 
 
-def cross_checks(values: dict) -> list[dict]:
+def cross_checks(values: dict, ctx: dict | None = None) -> list[dict]:
     """Checks spanning several fields. Returns warnings to show on the review screen."""
     out = []
     if values.get("full_name") and values.get("proof_name"):
@@ -224,7 +225,7 @@ def cross_checks(values: dict) -> list[dict]:
         if not set(b) <= set(a + [w[0] for w in a]):
             out.append({"fields": ["name_on_card"], "ok": True, "level": "warning",
                         "message": "Name on card should be derived from your full name (same words or initials).", "normalized": None})
-    if values.get("pan") and values.get("full_name"):
+    if values.get("pan") and values.get("full_name") and not _changing_name(ctx):
         r = validate_pan(values["pan"], values["full_name"])
         if r.level == "warning":
             out.append({"fields": ["pan"], **r.as_dict()})

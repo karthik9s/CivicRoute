@@ -311,7 +311,3 @@ def get_store():
             _store = MemoryStore()
     return _store
 
-
-def reset_store() -> None:
-    global _store
-    _store = None

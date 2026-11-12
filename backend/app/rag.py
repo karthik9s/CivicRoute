@@ -12,7 +12,7 @@ from .embeddings import keyword_tokens
 from .intent import detect_intent
 from .llm import LLMError, get_llm
 from .security import is_official_url, strip_unofficial_links
-from .store import Hit, get_store
+from .store import Chunk, Hit, get_store
 
 log = logging.getLogger(__name__)
 
@@ -41,14 +41,35 @@ VID_IN_TEXT = re.compile(r"(?<!\d)\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}(?!\d)")
 EMAIL_IN_TEXT = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 
 
+# A 12-digit number right after one of these words is almost always a UPI/bank reference (UTR), not an Aadhaar number:
+# "I paid, UTR 412345678901, status not updated" is the most common support question.
+PAYMENT_REF_BEFORE = re.compile(r"(utr|upi|rrn|txn|transaction|trans\.?|ref(erence)?|payment|bank)\s*(id|no\.?|number|#)?\s*[:#-]?\s*$", re.I)
+
+
+def _is_payment_ref(text: str, m: re.Match) -> bool:
+    from .validators import verhoeff_valid  # a real Aadhaar always passes the checksum: keep redacting those
+
+    digits = re.sub(r"\D", "", m.group(0))
+    return bool(PAYMENT_REF_BEFORE.search(text[max(0, m.start() - 30):m.start()])) and not verhoeff_valid(digits)
+
+
 def redact(text: str) -> tuple[str, list[str]]:
     """Remove identifiers before text is sent to any LLM or logged."""
     found = []
     for rx, label in ((VID_IN_TEXT, "AADHAAR_VID"), (AADHAAR_IN_TEXT, "AADHAAR"), (PAN_IN_TEXT, "PAN"),
                       (MOBILE_IN_TEXT, "MOBILE"), (OTP_IN_TEXT, "OTP"), (EMAIL_IN_TEXT, "EMAIL")):
-        if rx.search(text):
+        hit = False
+
+        def repl(m: re.Match, label=label, src=text) -> str:
+            nonlocal hit
+            if label == "AADHAAR" and _is_payment_ref(src, m):
+                return m.group(0)
+            hit = True
+            return f"[{label} REMOVED]"
+
+        text = rx.sub(repl, text)
+        if hit:
             found.append(label)
-            text = rx.sub(f"[{label} REMOVED]", text)
     return text, found
 
 
@@ -82,6 +103,10 @@ def route_and_retrieve(question: str, service_id: str | None = None) -> tuple[li
     native-language keywords pick the service, then English official content can be retrieved)."""
     intents = detect_intent(question, top_n=2)
     scope = service_id
+    # A follow-up in the chat carries the service being discussed, but a question that is clearly about another
+    # service ("and how do I link Aadhaar?") should follow the question.
+    if service_id and intents and intents[0].get("confidence") == "high" and intents[0]["service_id"] != service_id:
+        scope = intents[0]["service_id"]
     if not scope and intents:
         non_latin = sum(ord(c) > 0x024F for c in question) > len(question) * 0.3
         if intents[0].get("confidence") in ("high", "medium") or non_latin:
@@ -94,23 +119,34 @@ def route_and_retrieve(question: str, service_id: str | None = None) -> tuple[li
     return hits, intents
 
 
-def _with_card_context(hits: list[Hit], service_id: str, n_card: int = 2) -> list[Hit]:
-    """Make sure the reviewed service card for the detected service is in context. Official pages are
-    often in one language and miss the 'why' (e.g. the Hindi linking manual never says 'inoperative'),
-    while the card connects the user's problem to the right procedure."""
-    from .catalog import get_service
+@lru_cache(maxsize=None)
+def _card_sections(service_id: str) -> dict[str, Chunk]:
+    """The reviewed service card's sections, built exactly as the index builds them (same chunk ids), so they
+    can be added without a search. Sections split into several chunks keep their first part."""
+    from ingest.chunker import make_chunks
+    from ingest.run import service_card_docs
 
-    svc = get_service(service_id)
-    if not svc:
-        return hits
-    card_query = f"{svc['title']}. {svc['short']}"
+    out: dict[str, Chunk] = {}
+    for d in service_card_docs():
+        if d["service_ids"] != [service_id]:
+            continue
+        for c in make_chunks(d["sections"], source_id=d["source_id"], title=d["title"]):
+            out.setdefault(c["section"], Chunk(id=c["id"], source_url=d["url"], title=d["title"], content=c["content"],
+                                               portal=d["portal"], service_ids=list(d["service_ids"]), section=c["section"],
+                                               content_hash=c["content_hash"], last_verified=d["last_verified"], origin="card"))
+    return out
+
+
+def _with_card_context(hits: list[Hit], service_id: str) -> list[Hit]:
+    """Make sure the actionable parts of the reviewed service card (Steps, Fees) are in context. Official pages are
+    often in one language and miss the 'why' (e.g. the Hindi linking manual never says 'inoperative'), while the card
+    connects the user's problem to the right procedure. They are taken from the card directly: a search can rank
+    them below the service's many official-page chunks (e.g. the ₹1,000 linking fee went missing that way)."""
     have = {h.chunk.id for h in hits}
-    priority = {"Steps": 0, "Fees": 1}  # the actionable parts of a card
-    cards = [h for h in retrieve(card_query, service_id, k=12) if h.chunk.origin == "card" and h.chunk.id not in have]
-    cards.sort(key=lambda h: priority.get(h.chunk.section, 9))
-    extra = cards[:n_card]
-    if not extra:
-        return hits
+    have_sections = {(h.chunk.origin, h.chunk.section) for h in hits if service_id in h.chunk.service_ids}
+    sections = _card_sections(service_id)
+    extra = [Hit(sections[name], 0.0) for name in ("Steps", "Fees")
+             if name in sections and sections[name].id not in have and ("card", name) not in have_sections]
     return hits + extra
 
 

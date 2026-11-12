@@ -90,7 +90,7 @@ Editing content: change `backend/data/services.json` (English is authoritative),
 
 | Command | Covers |
 |---|---|
-| `cd backend` then `python -m pytest` | 44 tests: validators, intent routing, API, localization (facts unchanged across languages), security controls (headers, rate limit, size limit, Aadhaar rejection, redaction, link allow-list, crawler allow-list) |
+| `cd backend` then `python -m pytest` | 61 tests: validators, intent routing, API, localization (facts unchanged across languages), security controls (headers, rate limit, size limit, Aadhaar rejection, redaction, link allow-list, crawler allow-list) |
 | `cd frontend` then `npm test` | Browser-side Aadhaar checksum, fee labels, **translation completeness** (every label in all 3 languages) |
 | `cd backend` then `python -m eval.run_eval` | 32-question golden set in EN/HI/TE: intent accuracy, retrieval hit rate, required facts, citations |
 | `python -m pip_audit -r backend/requirements-lock.txt` / `npm audit` | Dependency vulnerabilities (both currently clean) |
@@ -115,7 +115,7 @@ The one routing miss, "Can I change my delivery address while ordering a reprint
 backend/   app/ (API, RAG, intent, validators, security, i18n)  ingest/ (crawler, chunker, translate)
            data/ (service cards, flows, KB, translations, helplines, updates)  eval/  tests/
 frontend/  src/pages (Home, ServicePage, Apply, Tracker, Info)  src/chat (support agent)  src/lib (api, i18n, validation)
-scripts/   refresh.ps1 (weekly data refresh), test_opener.ps1
+scripts/   refresh.ps1 (weekly data refresh)
 start.bat / start.ps1 / stop.bat · Dockerfile · docker-compose.yml · render.yaml · DEPLOY.md · SECURITY.md
 ```
 

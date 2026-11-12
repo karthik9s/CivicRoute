@@ -226,9 +226,15 @@ def validate(body: ValuesIn):
     if not get_service(body.service_id):
         raise HTTPException(404, "Unknown service")
     flat = {k: v for k, v in body.values.items() if isinstance(v, str)}
-    ctx = {**flat, "service_id": body.service_id}
+    ctx = _ctx(body.service_id, body.values)
     fields = {k: validators.validate_field(k, v, ctx).as_dict() for k, v in flat.items()}
-    return {"fields": fields, "cross_checks": validators.cross_checks(flat)}
+    return {"fields": fields, "cross_checks": validators.cross_checks(flat, ctx)}
+
+
+def _ctx(service_id: str, values: dict) -> dict:
+    flat = {k: v for k, v in values.items() if isinstance(v, str)}
+    change = values.get("change_fields")
+    return {**flat, "service_id": service_id, "change_fields": change if isinstance(change, list) else []}
 
 
 SAFETY = {
@@ -253,6 +259,7 @@ def handoff(body: ValuesIn, lang: str = "en"):
     svc = get_service(body.service_id, lang)
     if not svc:
         raise HTTPException(404, "Unknown service")
+    ctx = _ctx(body.service_id, body.values)
     rows = []
     for fid in svc.get("form_fields", []):
         meta = FIELDS.get(fid, {})
@@ -260,9 +267,13 @@ def handoff(body: ValuesIn, lang: str = "en"):
         if fid == "aadhaar_local":
             val = "Type your Aadhaar yourself on the portal"
         elif fid in ("photo", "signature"):
-            val = "Upload the file you checked in step 4"
+            val = "Upload the file you checked earlier"
         if isinstance(val, list):
             val = ", ".join(val)
+        if fid in validators.NORMALIZE_FIELDS and isinstance(val, str) and val:
+            r = validators.validate_field(fid, val, ctx)
+            if r.ok and r.normalized:
+                val = r.normalized
         if fid == "dob" and isinstance(val, str) and (d := validators.parse_date(val)):
             val = d.strftime("%d/%m/%Y")  # portals expect DD/MM/YYYY
         if val:
@@ -282,7 +293,7 @@ def handoff(body: ValuesIn, lang: str = "en"):
     return {
         "service_id": svc["id"], "title": svc["title"], "rows": rows, "checklist": checklist,
         "official_links": svc["official_links"], "steps": svc["steps"], "fees": svc["fees"],
-        "warnings": validators.cross_checks(flat),
+        "warnings": validators.cross_checks(flat, ctx),
         "safety": SAFETY[lang],
     }
 
@@ -294,6 +305,8 @@ if DIST.exists():
 
     @app.api_route("/{path:path}", methods=["GET", "HEAD"], include_in_schema=False)  # HEAD: link checkers
     def spa(path: str):
+        if path == "api" or path.startswith("api/"):  # a mistyped API call must fail clearly, not return the web page
+            raise HTTPException(404, "Unknown API endpoint")
         f = DIST / path
         if path and f.is_file() and DIST in f.resolve().parents:
             return FileResponse(f)

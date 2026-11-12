@@ -236,6 +236,7 @@ main { min-height: 60vh; }
 .ul.x .icon { color: var(--red); }
 .ul.tip .icon { color: var(--saffron); }
 table.gtable { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.table-scroll { overflow-x: auto; max-width: 100%; }  /* wide tables scroll inside themselves on phones */
 .gtable th, .gtable td { border: 1px solid var(--line); padding: 10px 12px; text-align: left; vertical-align: top; }
 .gtable th { background: var(--surface-2); color: var(--navy); font-weight: 700; }
 :root[data-contrast="high"] .gtable th { color: #fff; }
@@ -310,7 +311,8 @@ table.gtable { width: 100%; border-collapse: collapse; font-size: .92rem; }
 
 /* ---------------------------------------------------------------- Responsive */
 @media (max-width: 960px) {
-  .hero .wrap, .split, .layout { grid-template-columns: 1fr; }
+  .hero .wrap, .split { grid-template-columns: 1fr; }
+  .layout { grid-template-columns: minmax(0, 1fr); }  /* minmax(0,…): the scrolling tab row must not widen the page on phones */
   .side-nav { position: static; }
   .footer .cols { grid-template-columns: 1fr 1fr; }
   .fgrid { grid-template-columns: 1fr 1fr; }

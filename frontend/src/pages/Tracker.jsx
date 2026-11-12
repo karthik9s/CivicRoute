@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Icon from '../components/Icon.jsx'
 import { t } from '../lib/i18n.js'
-import { tracker } from '../lib/validate.js'
+import { normalizeAck, tracker } from '../lib/validate.js'
 
 const TRACK_URLS = {
   protean: 'https://tin.tin.proteantech.in/pantan/StatusTrack.html',
@@ -13,9 +13,18 @@ const ITD_SERVICES = new Set(['instant_epan', 'pan_aadhaar_link', 'verify_pan'])
 export default function Tracker({ lang }) {
   const [items, setItems] = useState(tracker.list())
   const [ack, setAck] = useState('')
-  const [title, setTitle] = useState('PAN application')
+  const [title, setTitle] = useState('')
+  const [ackErr, setAckErr] = useState('')
+  // Refresh when an acknowledgement is saved elsewhere (the chat assistant) or in another tab.
+  useEffect(() => {
+    const reload = () => setItems(tracker.list())
+    window.addEventListener('cr-tracker', reload); window.addEventListener('storage', reload)
+    return () => { window.removeEventListener('cr-tracker', reload); window.removeEventListener('storage', reload) }
+  }, [])
+  // Protean acknowledgements are 15 digits; anything else is most likely a UTIITSL coupon number, so open UTIITSL first.
   const where = (i) => (ITD_SERVICES.has(i.service_id) ? ['Income Tax portal', TRACK_URLS.itd]
-    : /^\d{15}$/.test(i.ack) ? ['Protean (NSDL)', TRACK_URLS.protean] : ['Protean / UTIITSL', TRACK_URLS.protean])
+    : /^\d{15}$/.test(i.ack) ? ['Protean (NSDL)', TRACK_URLS.protean] : ['UTIITSL', TRACK_URLS.utiitsl])
+  const other = (portal) => (portal === 'UTIITSL' ? ['Protean (NSDL)', TRACK_URLS.protean] : ['UTIITSL', TRACK_URLS.utiitsl])
 
   return (
     <div className="wrap">
@@ -43,7 +52,7 @@ export default function Tracker({ lang }) {
                       <td>{new Date(i.created).toLocaleDateString('en-IN')}</td>
                       <td style={{ whiteSpace: 'nowrap' }}>
                         <a className="btn sm primary" href={url} target="_blank" rel="noopener noreferrer">{portal} ↗</a>{' '}
-                        {portal !== 'Income Tax portal' && <a className="btn sm" href={TRACK_URLS.utiitsl} target="_blank" rel="noopener noreferrer">UTIITSL ↗</a>}
+                        {portal !== 'Income Tax portal' && <a className="btn sm" href={other(portal)[1]} target="_blank" rel="noopener noreferrer">{other(portal)[0]} ↗</a>}
                       </td>
                       <td><button className="btn sm" onClick={() => setItems(tracker.remove(i.id))} aria-label="Remove"><Icon name="trash" size={14} /></button></td>
                     </tr>
@@ -59,11 +68,16 @@ export default function Tracker({ lang }) {
           <p className="hint">{t(lang, 'add_app_h')}</p>
           <div className="fgrid">
             <div className="ff"><label htmlFor="tr-title">{t(lang, 'app_for')} <span className="req">*</span></label>
-              <input id="tr-title" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={80} /></div>
+              <input id="tr-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t(lang, 'application')} maxLength={80} /></div>
             <div className="ff"><label htmlFor="tr-ack">{t(lang, 'ack_ph')} <span className="req">*</span></label>
-              <input id="tr-ack" value={ack} onChange={(e) => setAck(e.target.value)} maxLength={30} /></div>
+              <input id="tr-ack" value={ack} onChange={(e) => { setAck(e.target.value); setAckErr('') }} maxLength={30} aria-invalid={Boolean(ackErr)} />
+              {ackErr && <p className="msg error" role="alert"><Icon name="x" size={14} /> {ackErr}</p>}</div>
             <div className="ff" style={{ alignSelf: 'end' }}>
-              <button className="btn primary" disabled={!ack.trim()} onClick={() => { setItems(tracker.add({ service_id: 'track_status', title, ack: ack.trim() })); setAck('') }}>
+              <button className="btn primary" disabled={!ack.trim()} onClick={() => {
+                const no = normalizeAck(ack)
+                if (!no) return setAckErr(t(lang, 'ack_bad'))
+                setItems(tracker.add({ service_id: 'track_status', title: title.trim() || t(lang, 'application'), ack: no })); setAck(''); setTitle('')
+              }}>
                 <Icon name="check" size={16} /> {t(lang, 'save')}</button></div>
           </div>
         </section>
