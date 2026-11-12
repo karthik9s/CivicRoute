@@ -4,7 +4,7 @@
 # Secrets are NOT baked in: pass them at runtime (backend/.env locally, the Render dashboard in production).
 
 # ---------- 1. build the web UI ----------
-FROM node:24-alpine AS web
+FROM node:25-alpine AS web
 WORKDIR /web
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --no-audit --no-fund
